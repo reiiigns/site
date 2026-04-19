@@ -2,100 +2,126 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ============================================
+   💡 CREATIVE ADJUSTMENTS — COLORS & TYPOGRAPHY
+   ============================================ */
+
 html,
 body {
+  /* --- BACKGROUND & TEXT COLOR --- */
+  background: #000000; /* Change to your desired background */
+  color: #EDEDED;       /* Change to your desired text color */
+}
+
+/* --- SCROLLBAR STYLING (optional) --- */
+::-webkit-scrollbar {
+  width: 4px;
+}
+::-webkit-scrollbar-track {
   background: #000;
-  color: #ededed;
+}
+::-webkit-scrollbar-thumb {
+  background: #333;
+  border-radius: 2px;
 }
 
-/* smoother text rendering */
-* {
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-}
+/* ============================================
+   💡 ANIMATION VARIABLES
+   ============================================ */
+
+/* --- SCAN LINE --- */
 @keyframes scan {
-  0% {
-    transform: translateY(-100%);
-  }
-  100% {
-    transform: translateY(100vh);
-  }
+  0%   { transform: translateY(-100%); }
+  100% { transform: translateY(100vh); }
 }
-@keyframes dataLine {
-  0% {
-    transform: scaleY(0.3);
-    opacity: 0.2;
-  }
-  50% {
-    transform: scaleY(1);
-    opacity: 0.6;
-  }
-  100% {
-    transform: scaleY(0.3);
-    opacity: 0.2;
-  }
-}
+/* Adjust scan line speed: change '6s' to '3s' for faster, '12s' for slower */
 
+/* --- DATA LINE PULSE --- */
+@keyframes dataLine {
+  0%   { transform: scaleY(0.3); opacity: 0.2; }
+  50%  { transform: scaleY(1);   opacity: 0.6; }
+  100% { transform: scaleY(0.3); opacity: 0.2; }
+}
 .animate-dataLine {
-  animation: dataLine 2s ease-in-out infinite;
+  animation: dataLine 2s ease-in-out infinite; /* Adjust '2s' for pulse speed */
   transform-origin: bottom;
 }
+
+/* --- SLOW ROTATION --- */
 @keyframes rotateSlow {
-  0% {
-    transform: rotate(0deg);
-  }
-  100% {
-    transform: rotate(360deg);
-  }
+  0%   { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
 }
-
 .animate-rotateSlow {
-  animation: rotateSlow 20s linear infinite;
-}
-.artifact {
-  animation: float 6s ease-in-out infinite;
-  transition: transform 0.3s ease, opacity 0.3s ease;
-}
-.artifact {
-  filter: drop-shadow(0 0 20px rgba(255, 255, 255, 0.12));
-}
-.artifact:hover {
-  transform: scale(1.05);
-  opacity: 1;
+  animation: rotateSlow 20s linear infinite; /* Adjust '20s' for rotation speed */
 }
 
+/* --- FLOAT EFFECT (for artifacts) --- */
 @keyframes float {
-  0%,
-  100% {
-    transform: translateY(0px) rotate(0.5deg);
-  }
-  50% {
-    transform: translateY(-12px) rotate(-0.5deg);
-  }
+  0%, 100% { transform: translateY(0px)  rotate(0.5deg); }
+  50%       { transform: translateY(-12px) rotate(-0.5deg); }
 }
-@keyframes pointMove {
-  0% {
-    transform: translateY(0px);
-    opacity: 0.2;
-  }
-  50% {
-    transform: translateY(-20px);
-    opacity: 1;
-  }
-  100% {
-    transform: translateY(0px);
-    opacity: 0.2;
-  }
-}
+/* Adjust float:
+   - Change '-12px' to '-20px' for more movement
+   - Change '6s' below to speed/slow the cycle */
 
+/* --- POINT MOVE ANIMATION --- */
+@keyframes pointMove {
+  0%   { transform: translateY(0px);  opacity: 0.2; }
+  50%  { transform: translateY(-20px); opacity: 1; }
+  100% { transform: translateY(0px);  opacity: 0.2; }
+}
 .animate-point {
   animation-name: pointMove;
   animation-timing-function: ease-in-out;
   animation-iteration-count: infinite;
 }
+
+/* ============================================
+   💡 ELEMENT-SPECIFIC STYLING
+   ============================================ */
+
+/* --- ARTIFACT (Floating image on Projects page) --- */
+.artifact {
+  animation: float 6s ease-in-out infinite; /* Adjust '6s' for float speed */
+  transition: transform 0.3s ease, opacity 0.3s ease;
+  filter: drop-shadow(0 0 20px rgba(255, 255, 255, 0.12)); /* Adjust glow intensity */
+}
+.artifact:hover {
+  transform: scale(1.05);  /* Adjust scale on hover */
+  opacity: 1;
+}
+
+/* --- SCANLINE EFFECT --- */
 .scanline {
   animation: scan 6s linear infinite;
   will-change: transform;
   transform: translateZ(0);
   pointer-events: none;
+}
+
+/* --- FADE IN (for list items) --- */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.animate-fadeIn {
+  animation: fadeIn 0.4s ease-out;
+}
+
+/* --- SCROLLBAR THIN --- */
+.scrollbar-thin::-webkit-scrollbar {
+  width: 2px;
+}
+.scrollbar-thin::-webkit-scrollbar-track {
+  background: transparent;
+}
+.scrollbar-thin::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.2);
 }
