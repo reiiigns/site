@@ -3,6 +3,8 @@ import { useEffect, useState } from 'react';
 import DataShader from './components/DataShader';
 import GitHubArchive from './components/GitHubArchive';
 
+const BASE_PATH = process.env.NEXT_PUBLIC_BASE_PATH || '';
+
 /* ============================================
    💡 SITE IDENTITY — EDITABLE STRINGS
    ============================================ */
@@ -231,7 +233,7 @@ function ArtifactVisual() {
       }}
     >
       <img
-        src="/keycap.png"
+        src={`${BASE_PATH}/keycap.png`}
         alt="artifact"
         className="artifact w-[220px] md:w-[300px] opacity-90 relative z-10"
         style={{ transform: `translate(${offset.x}px, ${offset.y}px)` }}
@@ -273,8 +275,6 @@ function ContactVisual() {
 }
 
 // ── Case Studies Visual ────────────────────────────────────────
-// BASE_PATH must match the repo name in next.config.js
-const BASE_PATH = process.env.NEXT_PUBLIC_BASE_PATH || '';
 
 const CASE_STUDIES = [
   {
