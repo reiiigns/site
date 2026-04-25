@@ -13,26 +13,16 @@ export const metadata: Metadata = {
 
   /* --- OPEN GRAPH (Facebook/LinkedIn) --- */
   openGraph: {
-    title: 'OPAQUEFILM',         // Social card title
-    description: 'Creative developer portfolio and experiments', // Social card description
-    type: 'website',
-    images: [
-      {
-        url: '/og-image.png',    // Replace with your social card image (~1200x630px)
-      },
-    ],
-  },
-
-  /* --- INSTAGRAM CARD --- */
-  instagram: {
-    card: 'summary_large_image',
     title: 'OPAQUEFILM',
     description: 'Creative developer portfolio and experiments',
-    images: [
-      {
-        url: '/og-image.png',    // Replace with your social card image
-      },
-    ],
+    type: 'website',
+  },
+
+  /* --- TWITTER/X CARD --- */
+  twitter: {
+    card: 'summary',
+    title: 'OPAQUEFILM',
+    description: 'Creative developer portfolio and experiments',
   },
 };
 
