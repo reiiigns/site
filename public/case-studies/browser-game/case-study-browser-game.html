@@ -1,0 +1,1089 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>JS Browser Horror Game — Darryl Friemann</title>
+  <style>
+    /* ── Reset & Base ─────────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:        #000000;
+      --surface:   #0d0d0d;
+      --border:    #1a1a1a;
+      --dim:       #333333;
+      --muted:     #666666;
+      --body:      #b0b0b0;
+      --bright:    #f0f0f0;
+      --white:     #ffffff;
+      --red:       #cc2200;
+      --red-dim:   #661100;
+      --red-glow:  rgba(204,34,0,0.12);
+      --mono:      'Courier New', Courier, monospace;
+      --sans:      -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--bg);
+      color: var(--body);
+      font-family: var(--sans);
+      font-size: 16px;
+      line-height: 1.7;
+      overflow-x: hidden;
+    }
+
+    /* ── Canvas Background ────────────────────────────────────── */
+    #bg-canvas {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      z-index: 0;
+      opacity: 0.35;
+      pointer-events: none;
+    }
+
+    /* ── Nav ──────────────────────────────────────────────────── */
+    nav {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 100;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 1.25rem 2.5rem;
+      border-bottom: 1px solid var(--border);
+      background: rgba(0,0,0,0.8);
+      backdrop-filter: blur(12px);
+    }
+
+    .nav-id {
+      font-family: var(--mono);
+      font-size: 0.75rem;
+      color: var(--muted);
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+    }
+
+    .nav-id span { color: var(--red); }
+
+    .nav-links {
+      display: flex;
+      gap: 2rem;
+      list-style: none;
+    }
+
+    .nav-links a {
+      font-family: var(--mono);
+      font-size: 0.7rem;
+      color: var(--muted);
+      text-decoration: none;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      transition: color 0.2s;
+    }
+
+    .nav-links a:hover { color: var(--bright); }
+
+    /* ── Section Dots ─────────────────────────────────────────── */
+    .section-dots {
+      position: fixed;
+      right: 1.75rem;
+      top: 50%;
+      transform: translateY(-50%);
+      z-index: 100;
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+
+    .dot {
+      width: 5px;
+      height: 5px;
+      border-radius: 50%;
+      background: var(--dim);
+      cursor: pointer;
+      transition: background 0.3s, transform 0.3s;
+    }
+
+    .dot.active {
+      background: var(--red);
+      transform: scale(1.6);
+    }
+
+    /* ── Sections ─────────────────────────────────────────────── */
+    section {
+      position: relative;
+      z-index: 1;
+      min-height: 100vh;
+      padding: 7rem 0 5rem;
+      display: flex;
+      align-items: center;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 0 2.5rem;
+    }
+
+    /* ── Reveal animations ────────────────────────────────────── */
+    .reveal {
+      opacity: 0;
+      transform: translateY(28px);
+      transition: opacity 0.7s ease, transform 0.7s ease;
+    }
+
+    .reveal.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .reveal-delay-1 { transition-delay: 0.1s; }
+    .reveal-delay-2 { transition-delay: 0.2s; }
+    .reveal-delay-3 { transition-delay: 0.3s; }
+    .reveal-delay-4 { transition-delay: 0.4s; }
+    .reveal-delay-5 { transition-delay: 0.5s; }
+
+    /* ── Typography ───────────────────────────────────────────── */
+    .label {
+      font-family: var(--mono);
+      font-size: 0.65rem;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--red);
+      margin-bottom: 1rem;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .label::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: var(--red-dim);
+      max-width: 80px;
+    }
+
+    h1 {
+      font-size: clamp(2.5rem, 6vw, 4.5rem);
+      font-weight: 300;
+      color: var(--white);
+      line-height: 1.1;
+      letter-spacing: -0.02em;
+    }
+
+    h1 em {
+      font-style: normal;
+      color: var(--red);
+    }
+
+    h2 {
+      font-size: clamp(1.5rem, 3vw, 2rem);
+      font-weight: 300;
+      color: var(--bright);
+      line-height: 1.25;
+      letter-spacing: -0.01em;
+      margin-bottom: 1.5rem;
+    }
+
+    h3 {
+      font-size: 0.8rem;
+      font-family: var(--mono);
+      font-weight: normal;
+      color: var(--bright);
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      margin-bottom: 0.75rem;
+    }
+
+    p {
+      color: var(--body);
+      margin-bottom: 1.25rem;
+      max-width: 65ch;
+    }
+
+    p:last-child { margin-bottom: 0; }
+
+    strong { color: var(--bright); font-weight: 500; }
+
+    /* ── Hero Section ─────────────────────────────────────────── */
+    #hero {
+      min-height: 100vh;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .hero-meta {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1px;
+      background: var(--border);
+      margin-top: 4rem;
+      border: 1px solid var(--border);
+    }
+
+    .meta-cell {
+      background: var(--bg);
+      padding: 1.25rem 1.5rem;
+    }
+
+    .meta-cell .key {
+      font-family: var(--mono);
+      font-size: 0.6rem;
+      color: var(--muted);
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      margin-bottom: 0.4rem;
+    }
+
+    .meta-cell .val {
+      font-size: 0.85rem;
+      color: var(--bright);
+    }
+
+    .hero-signal {
+      margin-top: 3rem;
+      padding: 1.5rem;
+      border-left: 2px solid var(--red);
+      background: var(--red-glow);
+    }
+
+    .hero-signal p {
+      font-family: var(--mono);
+      font-size: 0.85rem;
+      color: var(--bright);
+      margin: 0;
+      max-width: 100%;
+    }
+
+    /* ── Divider ──────────────────────────────────────────────── */
+    .divider {
+      border: none;
+      border-top: 1px solid var(--border);
+      margin: 3rem 0;
+    }
+
+    /* ── Two-col ──────────────────────────────────────────────── */
+    .two-col {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 3rem;
+    }
+
+    @media (max-width: 700px) {
+      .two-col { grid-template-columns: 1fr; }
+    }
+
+    /* ── Constraint Grid ──────────────────────────────────────── */
+    .constraint-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 1px;
+      background: var(--border);
+      border: 1px solid var(--border);
+      margin-top: 2.5rem;
+    }
+
+    .constraint-card {
+      background: var(--surface);
+      padding: 1.75rem;
+    }
+
+    .constraint-card h3 {
+      margin-bottom: 0.6rem;
+    }
+
+    .constraint-card p {
+      font-size: 0.875rem;
+      margin: 0;
+      max-width: 100%;
+    }
+
+    @media (max-width: 600px) {
+      .constraint-grid { grid-template-columns: 1fr; }
+    }
+
+    /* ── System Loop Diagram ──────────────────────────────────── */
+    .loop-diagram {
+      display: flex;
+      align-items: center;
+      gap: 0;
+      margin: 2.5rem 0;
+      overflow-x: auto;
+      padding-bottom: 0.5rem;
+    }
+
+    .loop-node {
+      flex-shrink: 0;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      padding: 1rem 1.25rem;
+      text-align: center;
+      min-width: 120px;
+    }
+
+    .loop-node .node-label {
+      font-family: var(--mono);
+      font-size: 0.6rem;
+      color: var(--muted);
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      margin-bottom: 0.3rem;
+    }
+
+    .loop-node .node-val {
+      font-size: 0.85rem;
+      color: var(--bright);
+    }
+
+    .loop-arrow {
+      flex-shrink: 0;
+      font-family: var(--mono);
+      font-size: 0.7rem;
+      color: var(--red);
+      padding: 0 0.5rem;
+    }
+
+    /* ── System Cards ─────────────────────────────────────────── */
+    .system-cards {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 1px;
+      background: var(--border);
+      border: 1px solid var(--border);
+      margin-top: 2.5rem;
+    }
+
+    .system-card {
+      background: var(--surface);
+      padding: 1.75rem;
+      position: relative;
+    }
+
+    .system-card::before {
+      content: attr(data-num);
+      position: absolute;
+      top: 1.25rem;
+      right: 1.5rem;
+      font-family: var(--mono);
+      font-size: 0.6rem;
+      color: var(--dim);
+    }
+
+    .system-card h3 { margin-bottom: 0.75rem; }
+
+    .system-card p {
+      font-size: 0.875rem;
+      margin: 0;
+      max-width: 100%;
+    }
+
+    @media (max-width: 600px) {
+      .system-cards { grid-template-columns: 1fr; }
+    }
+
+    /* ── Decision Cards ───────────────────────────────────────── */
+    .decision-block {
+      border: 1px solid var(--border);
+      margin-bottom: 1px;
+    }
+
+    .decision-header {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1px;
+      background: var(--border);
+    }
+
+    .decision-before, .decision-after {
+      padding: 1.25rem 1.5rem;
+      background: var(--surface);
+    }
+
+    .decision-before .tag, .decision-after .tag {
+      font-family: var(--mono);
+      font-size: 0.6rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      margin-bottom: 0.5rem;
+    }
+
+    .decision-before .tag { color: var(--muted); }
+    .decision-after .tag { color: var(--red); }
+
+    .decision-before p, .decision-after p {
+      font-size: 0.875rem;
+      margin: 0;
+      max-width: 100%;
+    }
+
+    .decision-why {
+      background: var(--bg);
+      border-top: 1px solid var(--border);
+      padding: 1.25rem 1.5rem;
+    }
+
+    .decision-why p {
+      font-size: 0.875rem;
+      margin: 0;
+      max-width: 100%;
+    }
+
+    /* ── Iteration Timeline ───────────────────────────────────── */
+    .iteration-list {
+      margin-top: 2.5rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+    }
+
+    .iteration-item {
+      display: grid;
+      grid-template-columns: 2rem 1fr;
+      gap: 1.5rem;
+      position: relative;
+      padding-bottom: 2rem;
+    }
+
+    .iteration-item:last-child { padding-bottom: 0; }
+
+    .iter-line {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0;
+    }
+
+    .iter-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--red);
+      flex-shrink: 0;
+      margin-top: 0.35rem;
+    }
+
+    .iter-track {
+      width: 1px;
+      flex: 1;
+      background: var(--border);
+      margin-top: 4px;
+    }
+
+    .iteration-item:last-child .iter-track { display: none; }
+
+    .iter-content h3 { margin-bottom: 0.5rem; }
+
+    .iter-content p {
+      font-size: 0.9rem;
+      max-width: 100%;
+    }
+
+    /* ── Outcome Block ────────────────────────────────────────── */
+    .status-block {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      margin-bottom: 2rem;
+    }
+
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #00cc66;
+      box-shadow: 0 0 8px rgba(0,204,102,0.6);
+      animation: pulse 2s ease-in-out infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.4; }
+    }
+
+    .status-text {
+      font-family: var(--mono);
+      font-size: 0.7rem;
+      color: #00cc66;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+    }
+
+    .remaining-list {
+      margin-top: 2rem;
+      border: 1px solid var(--border);
+    }
+
+    .remaining-item {
+      display: flex;
+      align-items: baseline;
+      gap: 1rem;
+      padding: 1rem 1.5rem;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .remaining-item:last-child { border-bottom: none; }
+
+    .remaining-item::before {
+      content: '→';
+      font-family: var(--mono);
+      font-size: 0.75rem;
+      color: var(--red);
+      flex-shrink: 0;
+    }
+
+    .remaining-item span {
+      font-size: 0.875rem;
+      color: var(--body);
+    }
+
+    /* ── Reflection Quote ─────────────────────────────────────── */
+    .reflection-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 1px;
+      background: var(--border);
+      border: 1px solid var(--border);
+      margin-top: 2.5rem;
+    }
+
+    .reflection-item {
+      background: var(--surface);
+      padding: 1.75rem;
+    }
+
+    .reflection-item p {
+      font-size: 0.875rem;
+      max-width: 100%;
+      margin: 0;
+    }
+
+    @media (max-width: 600px) {
+      .reflection-grid { grid-template-columns: 1fr; }
+    }
+
+    /* ── Next Steps ───────────────────────────────────────────── */
+    .next-steps {
+      margin-top: 2.5rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1px;
+      background: var(--border);
+      border: 1px solid var(--border);
+    }
+
+    .next-item {
+      display: grid;
+      grid-template-columns: 3rem 1fr;
+      background: var(--surface);
+    }
+
+    .next-num {
+      font-family: var(--mono);
+      font-size: 0.65rem;
+      color: var(--red);
+      padding: 1.25rem 0 1.25rem 1.5rem;
+      letter-spacing: 0.1em;
+    }
+
+    .next-text {
+      font-size: 0.875rem;
+      color: var(--body);
+      padding: 1.25rem 1.5rem;
+      border-left: 1px solid var(--border);
+    }
+
+    /* ── Footer ───────────────────────────────────────────────── */
+    footer {
+      position: relative;
+      z-index: 1;
+      padding: 2rem 2.5rem;
+      border-top: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    footer span {
+      font-family: var(--mono);
+      font-size: 0.65rem;
+      color: var(--muted);
+      letter-spacing: 0.1em;
+    }
+
+    footer span em {
+      font-style: normal;
+      color: var(--red);
+    }
+  </style>
+</head>
+<body>
+
+<!-- Background Canvas -->
+<canvas id="bg-canvas"></canvas>
+
+<!-- Navigation -->
+<nav>
+  <div class="nav-id">DARRYL FRIEMANN <span>//</span> CASE STUDY</div>
+  <ul class="nav-links">
+    <li><a href="#problem">Problem</a></li>
+    <li><a href="#system">System</a></li>
+    <li><a href="#decisions">Decisions</a></li>
+    <li><a href="#outcome">Outcome</a></li>
+  </ul>
+</nav>
+
+<!-- Section Dots -->
+<div class="section-dots">
+  <div class="dot" data-section="hero"></div>
+  <div class="dot" data-section="problem"></div>
+  <div class="dot" data-section="constraints"></div>
+  <div class="dot" data-section="system"></div>
+  <div class="dot" data-section="decisions"></div>
+  <div class="dot" data-section="iteration"></div>
+  <div class="dot" data-section="outcome"></div>
+  <div class="dot" data-section="reflection"></div>
+</div>
+
+<!-- ── HERO ───────────────────────────────────────────────────── -->
+<section id="hero">
+  <div class="container">
+    <div class="label reveal">01 — Browser Game</div>
+
+    <h1 class="reveal reveal-delay-1">
+      Stream-Aware<br/>
+      <em>Psychological</em><br/>
+      Horror Experience
+    </h1>
+
+    <div class="hero-meta reveal reveal-delay-2">
+      <div class="meta-cell">
+        <div class="key">Type</div>
+        <div class="val">Browser Game</div>
+      </div>
+      <div class="meta-cell">
+        <div class="key">Timeline</div>
+        <div class="val">2 weeks (hard deadline)</div>
+      </div>
+      <div class="meta-cell">
+        <div class="key">Constraint</div>
+        <div class="val">Sub-megabyte, solo</div>
+      </div>
+      <div class="meta-cell">
+        <div class="key">Platform</div>
+        <div class="val">Browser-only, no install</div>
+      </div>
+      <div class="meta-cell">
+        <div class="key">Stack</div>
+        <div class="val">JavaScript, WebGL, TTS</div>
+      </div>
+      <div class="meta-cell">
+        <div class="key">Delivery</div>
+        <div class="val">Live anniversary stream</div>
+      </div>
+    </div>
+
+    <div class="hero-signal reveal reveal-delay-3">
+      <p>"I design systems that respond to users — blurring the boundary between passive observation and direct interaction."</p>
+    </div>
+  </div>
+</section>
+
+<!-- ── PROBLEM ────────────────────────────────────────────────── -->
+<section id="problem">
+  <div class="container">
+    <div class="label reveal">02 — Problem</div>
+    <h2 class="reveal reveal-delay-1">How do you build a personalized horror experience — delivered live in a browser — that still feels like a surprise?</h2>
+    <hr class="divider reveal reveal-delay-2" />
+    <div class="two-col reveal reveal-delay-3">
+      <div>
+        <h3>The Core Challenge</h3>
+        <p>Create a high-impact horror experience for a specific streamer — without installation, without setup — that leverages their own identity, history, and community as the source of dread.</p>
+        <p>The experience had to function as a <strong>one-time event</strong>. A live anniversary stream. No patching after the fact. No second impressions. Reliability and emotional timing weren't quality-of-life concerns — they were the entire design constraint.</p>
+      </div>
+      <div>
+        <h3>Design Goals</h3>
+        <p>Instant browser access during a live stream — zero friction for a live audience.</p>
+        <p>Felt made for that specific streamer. Not generic horror — <strong>personal</strong> horror.</p>
+        <p>Used familiar streaming elements — chat, community, the streamer's own face — as instruments of unease.</p>
+        <p>A controlled psychological arc: <strong>passive viewer → direct target</strong>.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── CONSTRAINTS ────────────────────────────────────────────── -->
+<section id="constraints">
+  <div class="container">
+    <div class="label reveal">03 — Constraints</div>
+    <h2 class="reveal reveal-delay-1">Every decision was made inside a box.</h2>
+
+    <div class="constraint-grid reveal reveal-delay-2">
+      <div class="constraint-card">
+        <h3>Platform</h3>
+        <p>Browser-only. No installation. Smooth real-time performance despite live chat feed, audio triggers, and scene transitions. Target: <strong>sub-megabyte</strong> total size — inspired by demoscene projects like .kkrieger.</p>
+      </div>
+      <div class="constraint-card">
+        <h3>Time</h3>
+        <p>Two-week hard deadline tied to a fixed live event. No post-launch iteration window. Every decision had to account for a final test happening <strong>in public, in real time</strong>.</p>
+      </div>
+      <div class="constraint-card">
+        <h3>Technical</h3>
+        <p>First browser-based game. Limited prior experience with JavaScript game systems and real-time interaction design. Systems had to be <strong>learned and implemented simultaneously</strong> while building under deadline.</p>
+      </div>
+      <div class="constraint-card">
+        <h3>Team</h3>
+        <p>Solo across design, development, and implementation. No handoffs, no review cycles. <strong>Every decision lived and died in the same session it was made.</strong></p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── SYSTEM DESIGN ───────────────────────────────────────────── -->
+<section id="system">
+  <div class="container">
+    <div class="label reveal">04 — System Design</div>
+    <h2 class="reveal reveal-delay-1">Five interconnected systems. None complex in isolation. Together, they produce dread.</h2>
+
+    <div class="loop-diagram reveal reveal-delay-2">
+      <div class="loop-node">
+        <div class="node-label">Input</div>
+        <div class="node-val">Chat Feed</div>
+      </div>
+      <div class="loop-arrow">→</div>
+      <div class="loop-node">
+        <div class="node-label">Trigger</div>
+        <div class="node-val">Audio Cue</div>
+      </div>
+      <div class="loop-arrow">→</div>
+      <div class="loop-node">
+        <div class="node-label">State</div>
+        <div class="node-val">Anticipation</div>
+      </div>
+      <div class="loop-arrow">→</div>
+      <div class="loop-node">
+        <div class="node-label">Escalation</div>
+        <div class="node-val">Next Room</div>
+      </div>
+      <div class="loop-arrow">→</div>
+      <div class="loop-node">
+        <div class="node-label">Lock</div>
+        <div class="node-val">Door Closes</div>
+      </div>
+    </div>
+
+    <div class="system-cards reveal reveal-delay-3">
+      <div class="system-card" data-num="01">
+        <h3>Core Interaction Loop</h3>
+        <p>Chat messages stream continuously. Each triggers a synchronized audio cue — TTS, mechanical sounds, analog noise. The player reads, hears, anticipates. Repetition and timing build the rhythm. The rhythm builds dread.</p>
+      </div>
+      <div class="system-card" data-num="02">
+        <h3>Player Awareness System</h3>
+        <p>Player movement is tracked as a proxy for engagement. If the player stops, chat messages adapt to reflect that stillness. The system creates an illusion of being watched. <strong>The perception of awareness is the mechanism — not the reality.</strong></p>
+      </div>
+      <div class="system-card" data-num="03">
+        <h3>Room-Based Escalation</h3>
+        <p>Five rooms, each a discrete system state. Transitioning triggers a full shift across all systems simultaneously — chat tone, audio density, environmental content. Each door closes behind the player. No going back.</p>
+      </div>
+      <div class="system-card" data-num="04">
+        <h3>Sensory Systems</h3>
+        <p>Sound design references 70s/80s analog technology — Speak & Spell TTS, mechanical chatter, electrical hum. PSX-inspired low-fidelity rendering. Dim, subtly pulsing light. These aren't chosen for nostalgia — they evoke machinery that is <strong>functional but unknowable</strong>.</p>
+      </div>
+      <div class="system-card" data-num="05">
+        <h3>Progression Logic</h3>
+        <p>Discrete state changes, not continuous scaling. Each room is a checkpoint where systems update together. This allows pacing to be authored exactly — important for a one-time event where <strong>timing had to land</strong>.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── KEY DECISIONS ──────────────────────────────────────────── -->
+<section id="decisions">
+  <div class="container">
+    <div class="label reveal">05 — Key Decisions & Tradeoffs</div>
+    <h2 class="reveal reveal-delay-1">Every constraint produced a decision. Most produced better outcomes than the unconstrained alternatives.</h2>
+    <hr class="divider reveal reveal-delay-2" />
+
+    <div class="reveal reveal-delay-3">
+
+      <div class="decision-block">
+        <div class="decision-header">
+          <div class="decision-before">
+            <div class="tag">Before</div>
+            <p>Linear room layout — players could see the next space, making progression feel safe and predictable.</p>
+          </div>
+          <div class="decision-after">
+            <div class="tag">After</div>
+            <p>Circular layout — no forward visibility, replacing clarity with ambiguity.</p>
+          </div>
+        </div>
+        <div class="decision-why">
+          <p><strong>Why it mattered:</strong> Knowing what's coming ahead is the opposite of horror. One layout change removed player certainty entirely. Same rooms, reordered. Atmosphere improved significantly.</p>
+        </div>
+      </div>
+
+      <div class="decision-block">
+        <div class="decision-header">
+          <div class="decision-before">
+            <div class="tag">Before</div>
+            <p>Fully procedural environments — no stored assets, rooms generated on the fly. Rooms became visually repetitive.</p>
+          </div>
+          <div class="decision-after">
+            <div class="tag">After</div>
+            <p>Behavioral escalation — identical spaces that act differently across states. Visual monotony replaced by system-driven variation.</p>
+          </div>
+        </div>
+        <div class="decision-why">
+          <p><strong>Why it mattered:</strong> The rooms don't change — the way they respond to the player does. A technical limitation became a more coherent design direction.</p>
+        </div>
+      </div>
+
+      <div class="decision-block">
+        <div class="decision-header">
+          <div class="decision-before">
+            <div class="tag">Before</div>
+            <p>Full PSX-style shader implementation. Accurate visual style, significant in-browser lag.</p>
+          </div>
+          <div class="decision-after">
+            <div class="tag">After</div>
+            <p>Reduced shader complexity — essential visual markers only. Stable performance over visual accuracy.</p>
+          </div>
+        </div>
+        <div class="decision-why">
+          <p><strong>Why it mattered:</strong> Lag breaks immersion. In a horror experience, it also breaks trust. Performance was non-negotiable. Visual accuracy was the variable.</p>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ── ITERATION & FAILURE ────────────────────────────────────── -->
+<section id="iteration">
+  <div class="container">
+    <div class="label reveal">06 — Iteration & Failure</div>
+    <h2 class="reveal reveal-delay-1">What broke, and what changed because of it.</h2>
+
+    <div class="iteration-list reveal reveal-delay-2">
+
+      <div class="iteration-item">
+        <div class="iter-line">
+          <div class="iter-dot"></div>
+          <div class="iter-track"></div>
+        </div>
+        <div class="iter-content">
+          <h3>System Fragility</h3>
+          <p>Small JavaScript errors — a missing bracket, a misplaced variable — caused full system failures. The experience broke constantly. This reinforced a practice of <strong>incremental changes and immediate validation</strong> rather than large rewrites. Stable states had to be tested after every change.</p>
+        </div>
+      </div>
+
+      <div class="iteration-item">
+        <div class="iter-line">
+          <div class="iter-dot"></div>
+          <div class="iter-track"></div>
+        </div>
+        <div class="iter-content">
+          <h3>Layout Rework</h3>
+          <p>The linear-to-circular layout shift was a full spatial redesign mid-development. It cost time. It was worth it because the original version <strong>demonstrably reduced the emotional effect</strong> — testable, not speculative.</p>
+        </div>
+      </div>
+
+      <div class="iteration-item">
+        <div class="iter-line">
+          <div class="iter-dot"></div>
+          <div class="iter-track"></div>
+        </div>
+        <div class="iter-content">
+          <h3>Procedural Approach Abandoned</h3>
+          <p>The demoscene-inspired constraint — no stored assets, fully generated — was abandoned when it produced visual monotony rather than efficiency. The goal was interesting constraint design, but the output was dull rooms. <strong>Shifting to behavioral variation preserved the spirit while serving the experience.</strong></p>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ── OUTCOME ────────────────────────────────────────────────── -->
+<section id="outcome">
+  <div class="container">
+    <div class="label reveal">07 — Outcome</div>
+    <h2 class="reveal reveal-delay-1">Stable. Playable. In final polish ahead of live deployment.</h2>
+    <hr class="divider reveal reveal-delay-2" />
+
+    <div class="reveal reveal-delay-3">
+      <div class="status-block">
+        <div class="status-dot"></div>
+        <div class="status-text">Core Systems Operational</div>
+      </div>
+
+      <p>Chat feed, audio triggers, player awareness, and room escalation are all implemented and functioning as designed. The scope is fixed. No new features are being added.</p>
+
+      <div class="remaining-list">
+        <div class="remaining-item"><span>Polishing transitions and timing for live audience impact</span></div>
+        <div class="remaining-item"><span>Cross-environment performance stability testing</span></div>
+        <div class="remaining-item"><span>Eliminating edge-case failures under live conditions</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── REFLECTION ─────────────────────────────────────────────── -->
+<section id="reflection">
+  <div class="container">
+    <div class="label reveal">08 — Reflection</div>
+    <h2 class="reveal reveal-delay-1">What the project actually taught.</h2>
+
+    <div class="reflection-grid reveal reveal-delay-2">
+      <div class="reflection-item">
+        <h3>On Systems</h3>
+        <p>Layered systems produce effects that none of their parts could create alone. The chat feed is just text. Audio cues are just sounds. The awareness system is an illusion. Together they feel coherent and intentional.</p>
+      </div>
+      <div class="reflection-item">
+        <h3>On Constraints</h3>
+        <p>Constraints don't limit design — they locate it. The sub-megabyte target, the two-week deadline, the solo workflow: each forced a decision. Most of those decisions produced better outcomes than unconstrained alternatives would have.</p>
+      </div>
+      <div class="reflection-item">
+        <h3>On Perception</h3>
+        <p>The perception of awareness is the mechanism, not the reality. A system doesn't need to be truly reactive to feel reactive. Designing for what the user <strong>experiences</strong> is distinct from designing what's technically happening.</p>
+      </div>
+      <div class="reflection-item">
+        <h3>On Stability</h3>
+        <p>Stability requires constant validation, not just initial success. Incremental changes, continuous testing, and treating every state as fragile until proven otherwise — this is the practice.</p>
+      </div>
+    </div>
+
+    <div class="label reveal" style="margin-top: 3.5rem;">09 — Next Steps</div>
+    <div class="next-steps reveal reveal-delay-1">
+      <div class="next-item">
+        <div class="next-num">01</div>
+        <div class="next-text">Deploy the current build for the live stream event and document audience response</div>
+      </div>
+      <div class="next-item">
+        <div class="next-num">02</div>
+        <div class="next-text">Investigate whether true procedural generation could coexist with the behavioral escalation approach</div>
+      </div>
+      <div class="next-item">
+        <div class="next-num">03</div>
+        <div class="next-text">Expand browser-based interactive work — particularly reactive systems and user-perception design</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Footer -->
+<footer>
+  <span>DARRYL FRIEMANN <em>//</em> SYSTEMS DESIGNER</span>
+  <span>CASE STUDY <em>01</em> — JS BROWSER HORROR GAME</span>
+</footer>
+
+<script>
+  // ── Background: Animated noise/static canvas ─────────────────
+  (function () {
+    const canvas = document.getElementById('bg-canvas');
+    const ctx = canvas.getContext('2d');
+    let W, H, particles = [], time = 0;
+
+    function resize() {
+      W = canvas.width = window.innerWidth;
+      H = canvas.height = window.innerHeight;
+    }
+
+    function initParticles() {
+      particles = [];
+      const count = Math.floor((W * H) / 6000);
+      for (let i = 0; i < count; i++) {
+        particles.push({
+          x: Math.random() * W,
+          y: Math.random() * H,
+          size: Math.random() * 1.5 + 0.3,
+          speed: Math.random() * 0.15 + 0.03,
+          opacity: Math.random() * 0.6 + 0.1,
+          drift: (Math.random() - 0.5) * 0.2,
+        });
+      }
+    }
+
+    function draw() {
+      ctx.clearRect(0, 0, W, H);
+      time += 0.01;
+
+      // Occasional glitch lines
+      if (Math.random() < 0.015) {
+        const y = Math.random() * H;
+        const w = Math.random() * W * 0.4 + W * 0.1;
+        const x = Math.random() * (W - w);
+        ctx.fillStyle = `rgba(180, 30, 0, ${Math.random() * 0.04})`;
+        ctx.fillRect(x, y, w, Math.random() * 2 + 0.5);
+      }
+
+      for (let p of particles) {
+        p.y -= p.speed;
+        p.x += p.drift;
+
+        if (p.y < -2) { p.y = H + 2; p.x = Math.random() * W; }
+        if (p.x < 0) p.x = W;
+        if (p.x > W) p.x = 0;
+
+        // Subtle red tint on some particles
+        const isRed = p.size > 1.2;
+        const flicker = 0.7 + 0.3 * Math.sin(time * 3 + p.x);
+        const alpha = p.opacity * flicker;
+
+        if (isRed) {
+          ctx.fillStyle = `rgba(180, 40, 20, ${alpha * 0.8})`;
+        } else {
+          ctx.fillStyle = `rgba(200, 200, 200, ${alpha})`;
+        }
+
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.size / 2, 0, Math.PI * 2);
+        ctx.fill();
+      }
+
+      requestAnimationFrame(draw);
+    }
+
+    window.addEventListener('resize', () => { resize(); initParticles(); });
+    resize();
+    initParticles();
+    draw();
+  })();
+
+  // ── Scroll reveal ─────────────────────────────────────────────
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(e => {
+      if (e.isIntersecting) e.target.classList.add('visible');
+    });
+  }, { threshold: 0.1 });
+
+  document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+
+  // ── Section dots ──────────────────────────────────────────────
+  const sections = document.querySelectorAll('section');
+  const dots = document.querySelectorAll('.dot');
+
+  const sectionObserver = new IntersectionObserver((entries) => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        const id = e.target.id;
+        dots.forEach(d => d.classList.toggle('active', d.dataset.section === id));
+      }
+    });
+  }, { threshold: 0.4 });
+
+  sections.forEach(s => sectionObserver.observe(s));
+
+  dots.forEach(dot => {
+    dot.addEventListener('click', () => {
+      const sec = document.getElementById(dot.dataset.section);
+      if (sec) sec.scrollIntoView({ behavior: 'smooth' });
+    });
+  });
+</script>
+
+</body>
+</html>

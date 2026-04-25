@@ -27,21 +27,23 @@ const BOOT_FADE_DELAY  = 500;  // Delay before transitioning to main UI
    💡 NAVIGATION LABELS — EDITABLE
    ============================================ */
 const NAV_ITEMS = [
-  { id: 'projects',    label: '[/01] PROJECTS'    },
-  { id: 'experiments', label: '[/02] EXPERIMENTS' },
-  { id: 'archive',     label: '[/03] ARCHIVE'     },
-  { id: 'contact',     label: '[/04] CONTACT'     },
+  { id: 'projects',     label: '[/01] PROJECTS'     },
+  { id: 'experiments',  label: '[/02] EXPERIMENTS'  },
+  { id: 'case-studies', label: '[/03] CASE STUDIES' },
+  { id: 'archive',      label: '[/04] ARCHIVE'      },
+  { id: 'contact',      label: '[/05] CONTACT'      },
 ];
 
 /* ============================================
    💡 VIEW CENTER LABELS — EDITABLE
    ============================================ */
 const VIEW_LABELS: Record<string, string> = {
-  home:       'SYSTEM READY',
-  projects:   'ARTIFACT VIEW',
-  experiments:'DATA STREAM',
-  archive:    'ARCHIVE DATABASE',
-  contact:    'CONTACT INTERFACE',
+  home:          'SYSTEM READY',
+  projects:      'ARTIFACT VIEW',
+  experiments:   'DATA STREAM',
+  'case-studies':'CASE STUDIES',
+  archive:       'ARCHIVE DATABASE',
+  contact:       'CONTACT INTERFACE',
 };
 
 /* ============================================
@@ -176,11 +178,12 @@ export default function Home() {
 
           {/* center content */}
           <div className="w-[70%] h-[70%] relative flex items-center justify-center">
-            {activeView === 'home'       && <HomeVisual />}
-            {activeView === 'experiments' && <DataVisual />}
-            {activeView === 'projects'   && <ArtifactVisual />}
-            {activeView === 'archive'    && <ArchiveVisual />}
-            {activeView === 'contact'    && <ContactVisual />}
+            {activeView === 'home'          && <HomeVisual />}
+            {activeView === 'experiments'   && <DataVisual />}
+            {activeView === 'projects'      && <ArtifactVisual />}
+            {activeView === 'case-studies'  && <CaseStudiesVisual />}
+            {activeView === 'archive'       && <ArchiveVisual />}
+            {activeView === 'contact'       && <ContactVisual />}
           </div>
         </div>
 
@@ -263,6 +266,94 @@ function ContactVisual() {
           <p>&gt; email: opaquefilm.studio@gmail.com</p>
           <p>&gt; instagram: @opaquefilm</p>
           <p>&gt; github: github.com/reiiigns</p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ── Case Studies Visual ────────────────────────────────────────
+// BASE_PATH must match the repo name in next.config.js
+const BASE_PATH = process.env.NEXT_PUBLIC_BASE_PATH || '';
+
+const CASE_STUDIES = [
+  {
+    id:     'browser-game',
+    num:    '01',
+    title:  'JS BROWSER HORROR GAME',
+    tag:    'Interaction Design / Feedback Systems',
+    signal: 'Systems that respond to users',
+    status: 'COMPLETE',
+    href:   '/case-studies/browser-game/case-study-browser-game.html',
+  },
+  {
+    id:     'soft-city',
+    num:    '02',
+    title:  'SOFT CITY',
+    tag:    'Conceptual Systems / Worldbuilding',
+    signal: 'Systems that explore ideas',
+    status: 'COMING',
+    href:   null,
+  },
+  {
+    id:     'github-site',
+    num:    '03',
+    title:  'GITHUB SITE',
+    tag:    'Real-world Constraints / Performance',
+    signal: 'Systems that ship and work',
+    status: 'COMING',
+    href:   null,
+  },
+];
+
+function CaseStudiesVisual() {
+  return (
+    <div className="w-full h-full overflow-y-auto scrollbar-thin flex items-start justify-center px-2 py-8">
+      <div className="w-full max-w-md space-y-[1px]">
+        {CASE_STUDIES.map((cs) => (
+          <div
+            key={cs.id}
+            className="border border-white/10 bg-black group"
+          >
+            <div className="flex items-start justify-between p-4 gap-4">
+              <div className="flex-1 min-w-0">
+                <div className="font-mono text-[9px] text-white/30 tracking-widest mb-1 uppercase">
+                  {cs.num} / {cs.tag}
+                </div>
+                <div className="font-mono text-xs text-white/80 tracking-wider mb-1">
+                  {cs.title}
+                </div>
+                <div className="font-mono text-[9px] text-white/30 italic">
+                  &ldquo;{cs.signal}&rdquo;
+                </div>
+              </div>
+              <div className="flex-shrink-0 flex flex-col items-end gap-2">
+                <span
+                  className={`font-mono text-[8px] tracking-widest px-2 py-0.5 border ${
+                    cs.status === 'COMPLETE'
+                      ? 'border-white/20 text-white/60'
+                      : 'border-white/10 text-white/20'
+                  }`}
+                >
+                  {cs.status}
+                </span>
+                {cs.href && (
+                  <a
+                    href={`${BASE_PATH}${cs.href}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="font-mono text-[8px] text-white/30 hover:text-white/80 tracking-widest transition-colors duration-200 underline underline-offset-2"
+                  >
+                    VIEW →
+                  </a>
+                )}
+              </div>
+            </div>
+          </div>
+        ))}
+
+        <div className="pt-4 font-mono text-[9px] text-white/20 tracking-widest">
+          &gt; {CASE_STUDIES.filter(c => c.status === 'COMPLETE').length} OF {CASE_STUDIES.length} CASE STUDIES ONLINE
         </div>
       </div>
     </div>
