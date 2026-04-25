@@ -15,8 +15,6 @@ const nextConfig = {
   env: {
     NEXT_PUBLIC_BASE_PATH: BASE_PATH,
   },
-  // Pre-existing TS + ESLint errors in the repo — skip at build time.
-  // Clean these up when ready (DataShader null-checks, layout.tsx instagram field).
   typescript: {
     ignoreBuildErrors: true,
   },
