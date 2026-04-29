@@ -1,0 +1,364 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="./favicon.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Qweenie</title>
+    <style>
+      :root {
+        color-scheme: dark;
+        font-family: "Trebuchet MS", "Segoe UI", sans-serif;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        overflow: hidden;
+        background: #050506;
+        color: #f2e7ff;
+      }
+
+      canvas {
+        display: block;
+      }
+
+      .screen-overlay {
+        position: fixed;
+        inset: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 24px;
+        background:
+          radial-gradient(circle at top, rgba(65, 28, 83, 0.45), transparent 45%),
+          linear-gradient(180deg, rgba(7, 9, 15, 0.96), rgba(3, 3, 6, 0.98));
+        z-index: 3000;
+      }
+
+      #start-overlay {
+        align-items: center;
+        justify-content: flex-start;
+        background:
+          linear-gradient(90deg, rgba(0, 0, 0, 0.78) 0%, rgba(0, 0, 0, 0.38) 34%, rgba(0, 0, 0, 0.12) 66%),
+          linear-gradient(180deg, rgba(0, 0, 0, 0.12) 0%, rgba(0, 0, 0, 0.18) 52%, rgba(0, 0, 0, 0.48) 100%),
+          url("./assets/game_start_bkg-B6OPJ70t.png") center / cover no-repeat;
+        image-rendering: pixelated;
+        padding: 8vh 0 8vh 7vw;
+      }
+
+      .screen-overlay.hidden {
+        display: none;
+      }
+
+      .overlay-panel {
+        width: min(640px, 100%);
+        padding: 32px;
+        border: 1px solid rgba(196, 164, 255, 0.28);
+        border-radius: 20px;
+        background: rgba(8, 9, 14, 0.88);
+        box-shadow: 0 24px 80px rgba(0, 0, 0, 0.45);
+      }
+
+      #start-overlay .overlay-panel {
+        width: min(34vw, 420px);
+        min-width: 300px;
+        padding: 0;
+        border: 0;
+        border-radius: 0;
+        background: transparent;
+        box-shadow: none;
+        text-align: left;
+      }
+
+      .overlay-panel h1,
+      .overlay-panel h2,
+      .overlay-panel p {
+        margin: 0;
+      }
+
+      .eyebrow {
+        margin-bottom: 10px !important;
+        color: #c5a4ff;
+        font-size: 12px;
+        font-weight: 700;
+        letter-spacing: 0.24em;
+        text-transform: uppercase;
+      }
+
+      .overlay-panel h1,
+      .overlay-panel h2 {
+        margin-bottom: 14px;
+        font-family: Georgia, "Times New Roman", serif;
+        font-weight: 600;
+        letter-spacing: 0.04em;
+      }
+
+      .overlay-panel h1 {
+        font-size: clamp(42px, 8vw, 68px);
+      }
+
+      #start-overlay h1 {
+        position: relative;
+        margin-bottom: 22px;
+        color: #f8f1dd;
+        font-family: "Courier New", Consolas, monospace;
+        font-size: clamp(46px, 6.6vw, 98px);
+        font-weight: 700;
+        line-height: 0.95;
+        letter-spacing: 0;
+        text-transform: uppercase;
+        -webkit-font-smoothing: none;
+        font-smooth: never;
+        text-rendering: optimizeSpeed;
+        text-shadow:
+          2px 0 0 rgba(248, 241, 221, 0.6),
+          0 2px 0 rgba(248, 241, 221, 0.55),
+          3px 3px 0 rgba(67, 10, 26, 0.98),
+          6px 6px 0 rgba(0, 0, 0, 0.86),
+          8px 8px 0 rgba(0, 0, 0, 0.52),
+          0 18px 38px rgba(0, 0, 0, 0.92);
+      }
+
+      #start-overlay h1::after {
+        content: attr(data-text);
+        position: absolute;
+        inset: 0;
+        color: transparent;
+        text-shadow:
+          -2px 0 0 rgba(160, 34, 62, 0.8),
+          2px 2px 0 rgba(21, 18, 42, 0.75);
+        transform: translate(3px, 2px);
+        pointer-events: none;
+      }
+
+      .overlay-panel h2 {
+        font-size: clamp(28px, 6vw, 42px);
+      }
+
+      .lede,
+      .credits-copy,
+      .controls,
+      .status,
+      .credits-note {
+        line-height: 1.55;
+      }
+
+      .lede,
+      .credits-copy {
+        margin-bottom: 16px !important;
+        color: rgba(242, 231, 255, 0.92);
+      }
+
+      .controls {
+        margin-bottom: 20px !important;
+        color: #d7cee6;
+      }
+
+      .status,
+      .credits-note {
+        margin-top: 14px !important;
+        color: #bfb4cf;
+        font-size: 14px;
+      }
+
+      .overlay-actions {
+        display: flex;
+        gap: 12px;
+        flex-wrap: wrap;
+        margin-top: 20px;
+      }
+
+      #start-overlay .overlay-actions {
+        justify-content: flex-start;
+        margin-top: 0;
+      }
+
+      .overlay-button {
+        appearance: none;
+        border: 1px solid rgba(255, 255, 255, 0.14);
+        border-radius: 999px;
+        padding: 12px 20px;
+        background: linear-gradient(180deg, #f0d2a8, #d78258);
+        color: #1e0e08;
+        font-size: 15px;
+        font-weight: 700;
+        cursor: pointer;
+      }
+
+      #start-overlay .overlay-button {
+        min-width: 172px;
+        border-color: rgba(255, 246, 223, 0.82);
+        border-radius: 0;
+        padding: 14px 28px;
+        background: #e8d7b4;
+        box-shadow:
+          6px 6px 0 rgba(69, 25, 24, 0.92),
+          0 22px 52px rgba(0, 0, 0, 0.78);
+        color: #24100f;
+        font-family: "Courier New", Consolas, monospace;
+        font-size: 18px;
+        letter-spacing: 0;
+        text-transform: uppercase;
+      }
+
+      #start-overlay .status {
+        width: min(100%, 360px);
+        margin-top: 24px !important;
+        color: rgba(255, 247, 230, 0.86);
+        font-family: "Courier New", Consolas, monospace;
+        font-size: 15px;
+        line-height: 1.45;
+        text-shadow:
+          2px 2px 0 rgba(0, 0, 0, 0.75),
+          0 3px 14px rgba(0, 0, 0, 0.95);
+      }
+
+      #start-overlay .eyebrow,
+      #start-overlay .lede,
+      #start-overlay .controls {
+        display: none;
+      }
+
+      @media (max-width: 640px) {
+        #start-overlay {
+          align-items: flex-start;
+          padding: 7vh 18px;
+          background-position: 58% center;
+        }
+
+        #start-overlay h1 {
+          margin-bottom: 18px;
+          font-size: clamp(42px, 16vw, 70px);
+        }
+
+        #start-overlay .overlay-panel {
+          width: min(100%, 340px);
+          min-width: 0;
+        }
+
+        #start-overlay .overlay-button {
+          min-width: 160px;
+          padding: 13px 24px;
+          font-size: 16px;
+        }
+      }
+
+      .overlay-button.secondary {
+        background: rgba(255, 255, 255, 0.06);
+        color: #f2e7ff;
+      }
+
+      #credits-overlay {
+        overflow: hidden;
+      }
+
+      #credits-overlay .overlay-panel {
+        border: 0;
+        border-radius: 0;
+        background: transparent;
+        box-shadow: none;
+        color: #f8f1dd;
+        font-family: "Courier New", Consolas, monospace;
+        text-align: center;
+        animation: credits-roll 14s cubic-bezier(0.18, 0.9, 0.22, 1) forwards;
+      }
+
+      #credits-overlay h2 {
+        margin-bottom: 16px;
+        color: #f8f1dd;
+        font-family: "Courier New", Consolas, monospace;
+        font-size: clamp(42px, 7vw, 82px);
+        font-weight: 700;
+        letter-spacing: 0;
+        line-height: 0.95;
+        text-transform: uppercase;
+        text-shadow:
+          2px 0 0 rgba(248, 241, 221, 0.6),
+          0 2px 0 rgba(248, 241, 221, 0.55),
+          3px 3px 0 rgba(67, 10, 26, 0.98),
+          6px 6px 0 rgba(0, 0, 0, 0.86);
+      }
+
+      #credits-overlay .credits-copy {
+        margin-bottom: 28px !important;
+        color: rgba(255, 247, 230, 0.9);
+        font-family: "Courier New", Consolas, monospace;
+        font-size: clamp(18px, 2.4vw, 28px);
+        line-height: 1.3;
+        text-shadow:
+          2px 2px 0 rgba(0, 0, 0, 0.75),
+          0 3px 14px rgba(0, 0, 0, 0.95);
+      }
+
+      #credits-overlay .overlay-actions {
+        justify-content: center;
+        margin-top: 0;
+      }
+
+      #credits-overlay .overlay-button {
+        min-width: 172px;
+        border-color: rgba(255, 246, 223, 0.82);
+        border-radius: 0;
+        padding: 14px 24px;
+        background: #e8d7b4;
+        box-shadow:
+          6px 6px 0 rgba(69, 25, 24, 0.92),
+          0 22px 52px rgba(0, 0, 0, 0.78);
+        color: #24100f;
+        font-family: "Courier New", Consolas, monospace;
+        font-size: 16px;
+        letter-spacing: 0;
+        text-transform: uppercase;
+      }
+
+      #credits-overlay .overlay-button.secondary {
+        background: #1a0b14;
+        color: #f8f1dd;
+      }
+
+      @keyframes credits-roll {
+        0% {
+          opacity: 0;
+          transform: translateY(62vh);
+        }
+        12% {
+          opacity: 1;
+        }
+        78%,
+        100% {
+          opacity: 1;
+          transform: translateY(-8vh);
+        }
+      }
+    </style>
+    <script type="module" crossorigin src="./assets/index-BS4_8pcF.js"></script>
+  </head>
+  <body>
+    <div id="app"></div>
+    <div id="start-overlay" class="screen-overlay">
+      <div class="overlay-panel">
+        <h1 data-text="Qweenie?">Qweenie?</h1>
+        <div class="overlay-actions">
+          <button id="start-button" class="overlay-button" type="button">Start</button>
+        </div>
+        <p id="start-status" class="status">Best with headphones. Start OBS Virtual Camera before you enter</p>
+      </div>
+    </div>
+    <div id="credits-overlay" class="screen-overlay hidden">
+      <div class="overlay-panel">
+        <h2>Happy 8 years</h2>
+        <p id="credits-summary" class="credits-copy">made by REIIIGNS</p>
+        <div class="overlay-actions">
+          <button id="restart-button" class="overlay-button" type="button">RESTART</button>
+          <button id="return-button" class="overlay-button secondary" type="button">RETURN TO TITLE</button>
+        </div>
+      </div>
+    </div>
+    <div id="interaction-prompt" style="position: fixed; bottom: 100px; left: 50%; transform: translateX(-50%); color: white; font-family: monospace; font-size: 18px; text-shadow: 2px 2px 4px black; opacity: 0; transition: opacity 0.2s; pointer-events: none; z-index: 1000;"></div>
+    <div id="camera-flash" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: white; opacity: 0; pointer-events: none; z-index: 2000; transition: opacity 0.1s;"></div>
+  </body>
+</html>

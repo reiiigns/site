@@ -276,15 +276,27 @@ function ContactVisual() {
 
 // ── Case Studies Visual ────────────────────────────────────────
 
-const CASE_STUDIES = [
+interface CaseStudy {
+  id: string;
+  num: string;
+  title: string;
+  tag: string;
+  signal: string;
+  status: string;
+  href: string | null;
+  playHref?: string;
+}
+
+const CASE_STUDIES: CaseStudy[] = [
   {
-    id:     'browser-game',
-    num:    '01',
-    title:  'JS BROWSER HORROR GAME',
-    tag:    'Interaction Design / Feedback Systems',
-    signal: 'Systems that respond to users',
-    status: 'COMPLETE',
-    href:   '/case-studies/browser-game/case-study-browser-game.html',
+    id:       'browser-game',
+    num:      '01',
+    title:    'JS BROWSER HORROR GAME',
+    tag:      'Interaction Design / Feedback Systems',
+    signal:   'Systems that respond to users',
+    status:   'COMPLETE',
+    href:     '/case-studies/browser-game/case-study-browser-game.html',
+    playHref: '/case-studies/browser-game/play/index.html',
   },
   {
     id:     'soft-city',
@@ -345,6 +357,16 @@ function CaseStudiesVisual() {
                     className="font-mono text-[8px] text-white/30 hover:text-white/80 tracking-widest transition-colors duration-200 underline underline-offset-2"
                   >
                     VIEW →
+                  </a>
+                )}
+                {cs.playHref && (
+                  <a
+                    href={`${BASE_PATH}${cs.playHref}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="font-mono text-[8px] text-white/60 hover:text-white tracking-widest transition-colors duration-200 underline underline-offset-2"
+                  >
+                    ▶ PLAY
                   </a>
                 )}
               </div>
