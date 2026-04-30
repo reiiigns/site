@@ -320,6 +320,91 @@
         color: #f8f1dd;
       }
 
+      #settings-overlay {
+        align-items: flex-start;
+        justify-content: flex-end;
+        padding: 28px;
+        background: rgba(0, 0, 0, 0.34);
+        pointer-events: auto;
+      }
+
+      #settings-overlay .overlay-panel {
+        width: min(360px, 100%);
+        border: 1px solid rgba(255, 246, 223, 0.38);
+        border-radius: 0;
+        background: rgba(7, 11, 15, 0.88);
+        box-shadow:
+          6px 6px 0 rgba(69, 25, 24, 0.72),
+          0 22px 52px rgba(0, 0, 0, 0.72);
+        color: #f8f1dd;
+        font-family: "Courier New", Consolas, monospace;
+      }
+
+      #settings-overlay h2 {
+        margin-bottom: 8px;
+        color: #f8f1dd;
+        font-family: "Courier New", Consolas, monospace;
+        font-size: 28px;
+        letter-spacing: 0;
+        text-transform: uppercase;
+        text-shadow:
+          2px 0 0 rgba(248, 241, 221, 0.45),
+          3px 3px 0 rgba(67, 10, 26, 0.98),
+          6px 6px 0 rgba(0, 0, 0, 0.72);
+      }
+
+      #settings-overlay .settings-hint {
+        margin-bottom: 22px;
+        color: rgba(255, 247, 230, 0.72);
+        font-size: 13px;
+        line-height: 1.45;
+      }
+
+      .settings-row {
+        display: grid;
+        grid-template-columns: 1fr auto;
+        gap: 8px 12px;
+        align-items: center;
+        margin-top: 18px;
+      }
+
+      .settings-row label,
+      .settings-row output {
+        font-size: 14px;
+        text-transform: uppercase;
+      }
+
+      .settings-row output {
+        color: #e8d7b4;
+      }
+
+      .settings-row input {
+        grid-column: 1 / -1;
+        width: 100%;
+        accent-color: #e8d7b4;
+      }
+
+      #settings-overlay .overlay-actions {
+        justify-content: space-between;
+      }
+
+      #settings-overlay .overlay-button {
+        min-width: 118px;
+        border-color: rgba(255, 246, 223, 0.82);
+        border-radius: 0;
+        padding: 11px 16px;
+        background: #e8d7b4;
+        color: #24100f;
+        font-family: "Courier New", Consolas, monospace;
+        font-size: 14px;
+        text-transform: uppercase;
+      }
+
+      #settings-overlay .overlay-button.secondary {
+        background: #1a0b14;
+        color: #f8f1dd;
+      }
+
       @keyframes credits-roll {
         0% {
           opacity: 0;
@@ -335,7 +420,7 @@
         }
       }
     </style>
-    <script type="module" crossorigin src="./assets/index-BS4_8pcF.js"></script>
+    <script type="module" crossorigin src="./assets/index-D-EUh5G9.js"></script>
   </head>
   <body>
     <div id="app"></div>
@@ -355,6 +440,41 @@
         <div class="overlay-actions">
           <button id="restart-button" class="overlay-button" type="button">RESTART</button>
           <button id="return-button" class="overlay-button secondary" type="button">RETURN TO TITLE</button>
+        </div>
+      </div>
+    </div>
+    <div id="settings-overlay" class="screen-overlay hidden">
+      <div class="overlay-panel">
+        <h2>Settings</h2>
+        <p class="settings-hint">TAB closes this panel. Changes apply immediately.</p>
+        <div class="settings-row">
+          <label for="audio-master">Master</label>
+          <output id="audio-master-value" for="audio-master">100%</output>
+          <input id="audio-master" data-audio-level="master" type="range" min="0" max="150" value="100" />
+        </div>
+        <div class="settings-row">
+          <label for="audio-ambience">Ambience</label>
+          <output id="audio-ambience-value" for="audio-ambience">100%</output>
+          <input id="audio-ambience" data-audio-level="ambience" type="range" min="0" max="150" value="100" />
+        </div>
+        <div class="settings-row">
+          <label for="audio-sfx">SFX</label>
+          <output id="audio-sfx-value" for="audio-sfx">100%</output>
+          <input id="audio-sfx" data-audio-level="sfx" type="range" min="0" max="150" value="100" />
+        </div>
+        <div class="settings-row">
+          <label for="audio-music">Music</label>
+          <output id="audio-music-value" for="audio-music">100%</output>
+          <input id="audio-music" data-audio-level="music" type="range" min="0" max="150" value="100" />
+        </div>
+        <div class="settings-row">
+          <label for="audio-tts">TTS</label>
+          <output id="audio-tts-value" for="audio-tts">100%</output>
+          <input id="audio-tts" data-audio-level="tts" type="range" min="0" max="150" value="100" />
+        </div>
+        <div class="overlay-actions">
+          <button id="settings-reset-button" class="overlay-button secondary" type="button">RESET</button>
+          <button id="settings-close-button" class="overlay-button" type="button">CLOSE</button>
         </div>
       </div>
     </div>
