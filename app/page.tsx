@@ -73,6 +73,7 @@ export default function Home() {
   const [activeView, setActiveView] = useState('home');
   const [systemLines, setSystemLines] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   useEffect(() => {
     let i = 0;
@@ -88,7 +89,21 @@ export default function Home() {
     return () => clearInterval(interval);
   }, []);
 
+  useEffect(() => {
+    if (!isMenuOpen) return;
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        setIsMenuOpen(false);
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isMenuOpen]);
+
   const handleNavClick = (view: string) => {
+    setIsMenuOpen(false);
     setIsLoading(true);
     setSystemLines([]);
 
@@ -108,6 +123,8 @@ export default function Home() {
     }, LOADING_DELAY_MS);
   };
 
+  const activeLabel = VIEW_LABELS[activeView] || VIEW_LABELS.home;
+
   if (!bootComplete) {
     return (
       <main className="w-screen h-screen bg-black text-[#EDEDED] flex items-center justify-center">
@@ -122,9 +139,82 @@ export default function Home() {
   }
 
   return (
-    <main className="w-screen h-screen bg-black text-[#EDEDED] flex">
+    <main className="min-h-screen w-full overflow-x-hidden bg-black text-[#EDEDED] md:h-screen md:overflow-hidden md:flex">
+      <header className="fixed inset-x-0 top-0 z-40 flex h-14 items-center justify-between border-b border-white/10 bg-black/90 px-4 backdrop-blur md:hidden">
+        <button
+          type="button"
+          onClick={() => handleNavClick('home')}
+          className="min-h-[44px] min-w-[44px] text-left font-mono text-[10px] tracking-wider text-white/70 focus-visible:outline focus-visible:outline-1 focus-visible:outline-offset-2 focus-visible:outline-white"
+          aria-label="Go to system home"
+        >
+          &gt; {SITE_NAME}
+        </button>
+        <div className="min-w-0 px-3 text-center font-mono text-[10px] tracking-widest text-white/40">
+          <span className="block truncate">{activeLabel}</span>
+        </div>
+        <button
+          type="button"
+          className="flex min-h-[44px] min-w-[44px] items-center justify-end font-mono text-xs tracking-widest text-white/80 focus-visible:outline focus-visible:outline-1 focus-visible:outline-offset-2 focus-visible:outline-white"
+          aria-label={isMenuOpen ? 'Close navigation menu' : 'Open navigation menu'}
+          aria-controls="mobile-nav"
+          aria-expanded={isMenuOpen}
+          onClick={() => setIsMenuOpen((open) => !open)}
+        >
+          {isMenuOpen ? 'CLOSE' : 'MENU'}
+        </button>
+      </header>
+
+      {isMenuOpen && (
+        <div className="fixed inset-0 z-30 bg-black/70 md:hidden" onClick={() => setIsMenuOpen(false)} />
+      )}
+
+      <aside
+        id="mobile-nav"
+        className={`fixed inset-y-0 left-0 z-50 flex w-[min(84vw,320px)] flex-col justify-between border-r border-white/10 bg-black px-5 pb-6 pt-5 transition-transform duration-200 md:hidden ${
+          isMenuOpen ? 'translate-x-0' : '-translate-x-full'
+        }`}
+      >
+        <div>
+          <div className="font-mono text-xs tracking-wider text-white/70">
+            <p>&gt; {SITE_NAME} {SITE_VERSION}</p>
+            <p className="mt-3">&gt; STATUS: ONLINE</p>
+            <p className="mt-3">&gt; LOCATION: {SITE_LOCATION}</p>
+          </div>
+
+          <div className="mt-5 space-y-1 font-mono text-[10px] text-white/40">
+            {systemLines.map((line, index) => (
+              <p key={index}>{line}</p>
+            ))}
+            {isLoading && <p className="animate-pulse">&gt; processing...</p>}
+          </div>
+
+          <nav className="mt-10 space-y-2 font-mono text-sm" aria-label="Mobile navigation">
+            {NAV_ITEMS.map((item) => (
+              <button
+                key={item.id}
+                type="button"
+                onClick={() => handleNavClick(item.id)}
+                className={`block min-h-[44px] w-full text-left tracking-wider transition-colors duration-200 focus-visible:outline focus-visible:outline-1 focus-visible:outline-offset-2 focus-visible:outline-white ${
+                  activeView === item.id
+                    ? 'text-white'
+                    : 'text-white/45 hover:text-white/75'
+                }`}
+              >
+                {item.label}
+              </button>
+            ))}
+          </nav>
+        </div>
+
+        <div className="space-y-1 font-mono text-[10px] text-white/45">
+          {FOOTER_INFO.map((info, i) => (
+            <p key={i}>{info}</p>
+          ))}
+        </div>
+      </aside>
+
       {/* LEFT PANEL */}
-      <section className="w-[32%] min-w-[320px] max-w-[420px] h-full border-r border-white/10 px-8 py-10 flex flex-col justify-between">
+      <section className="hidden h-full w-[32%] min-w-[320px] max-w-[420px] flex-col justify-between border-r border-white/10 px-8 py-10 md:flex">
         <div className="font-mono text-xs tracking-wider space-y-3 opacity-80">
           <p>&gt; {SITE_NAME} {SITE_VERSION}</p>
           <p>&gt; STATUS: ONLINE</p>
@@ -145,17 +235,18 @@ export default function Home() {
         {/* NAV */}
         <nav className="font-mono text-base space-y-5 mt-10">
           {NAV_ITEMS.map((item) => (
-            <p
+            <button
               key={item.id}
+              type="button"
               onClick={() => handleNavClick(item.id)}
-              className={`cursor-pointer transition duration-200 ${
+              className={`block w-full min-h-[44px] text-left transition duration-200 focus-visible:outline focus-visible:outline-1 focus-visible:outline-offset-2 focus-visible:outline-white ${
                 activeView === item.id
                   ? 'opacity-100'
                   : 'opacity-40 hover:opacity-70'
               }`}
             >
               {item.label}
-            </p>
+            </button>
           ))}
         </nav>
 
@@ -168,18 +259,18 @@ export default function Home() {
       </section>
 
       {/* RIGHT PANEL */}
-      <section className="flex-1 h-full relative flex items-center justify-center">
-        <div className="relative w-full h-full overflow-hidden">
+      <section className="relative flex min-h-screen w-full flex-1 items-stretch justify-center pt-14 md:h-full md:min-h-0 md:items-center md:pt-0">
+        <div className="relative min-h-screen w-full overflow-hidden md:h-full md:min-h-0">
           {/* animated grid */}
-          <div className="absolute inset-0 opacity-10">
-            <div className="w-full h-full bg-[linear-gradient(to_right,white_1px,transparent_1px),linear-gradient(to_bottom,white_1px,transparent_1px)] bg-[size:40px_40px] animate-pulse" />
+          <div className="absolute inset-0 opacity-[0.06] md:opacity-10">
+            <div className="h-full w-full bg-[linear-gradient(to_right,white_1px,transparent_1px),linear-gradient(to_bottom,white_1px,transparent_1px)] bg-[size:32px_32px] motion-safe:animate-pulse md:bg-[size:40px_40px]" />
           </div>
 
           {/* moving scan line */}
-          <div className="absolute top-0 left-0 w-full h-[2px] bg-white opacity-30 animate-[scan_4s_linear_infinite]" />
+          <div className="absolute left-0 top-0 h-[2px] w-full bg-white opacity-15 motion-safe:animate-[scan_4s_linear_infinite] md:opacity-30" />
 
           {/* center content */}
-          <div className="w-[70%] h-[70%] relative flex items-center justify-center">
+          <div className="relative mx-auto flex min-h-[calc(100vh-3.5rem)] w-full items-center justify-center px-4 py-8 md:h-[70%] md:min-h-0 md:w-[70%] md:px-0 md:py-0">
             {activeView === 'home'          && <HomeVisual />}
             {activeView === 'experiments'   && <DataVisual />}
             {activeView === 'projects'      && <ArtifactVisual />}
@@ -189,7 +280,7 @@ export default function Home() {
           </div>
         </div>
 
-        <div className="absolute bottom-8 left-8 font-mono text-[10px] opacity-50 space-y-1 tracking-wide">
+        <div className="pointer-events-none absolute bottom-4 left-4 font-mono text-[10px] tracking-wide opacity-35 md:bottom-8 md:left-8 md:opacity-50">
           <p>ID: {SYSTEM_ID}</p>
           <p>TYPE: {SYSTEM_TYPE}</p>
           <p>STATUS: ACTIVE</p>
@@ -201,9 +292,9 @@ export default function Home() {
 
 function HomeVisual() {
   return (
-    <div className="relative w-full h-full overflow-hidden">
-      <div className="absolute inset-0 opacity-10">
-        <div className="w-full h-full bg-[linear-gradient(to_right,white_1px,transparent_1px),linear-gradient(to_bottom,white_1px,transparent_1px)] bg-[size:40px_40px]" />
+    <div className="relative min-h-[360px] w-full overflow-hidden md:h-full md:min-h-0">
+      <div className="absolute inset-0 opacity-[0.06] md:opacity-10">
+        <div className="h-full w-full bg-[linear-gradient(to_right,white_1px,transparent_1px),linear-gradient(to_bottom,white_1px,transparent_1px)] bg-[size:32px_32px] md:bg-[size:40px_40px]" />
       </div>
       <CenterLabel text={VIEW_LABELS.home} />
     </div>
@@ -212,7 +303,7 @@ function HomeVisual() {
 
 function DataVisual() {
   return (
-    <div className="w-full h-full">
+    <div className="relative min-h-[380px] w-full md:h-full md:min-h-0">
       <DataShader />
       <CenterLabel text={VIEW_LABELS.experiments} />
     </div>
@@ -224,7 +315,7 @@ function ArtifactVisual() {
 
   return (
     <div
-      className="w-full h-full flex items-center justify-center relative"
+      className="relative flex min-h-[380px] w-full items-center justify-center md:h-full md:min-h-0"
       onMouseMove={(e) => {
         const rect = e.currentTarget.getBoundingClientRect();
         const x = (e.clientX - rect.width / 2) / 40;
@@ -235,12 +326,12 @@ function ArtifactVisual() {
       <img
         src={`${BASE_PATH}/keycap.png`}
         alt="artifact"
-        className="artifact w-[220px] md:w-[300px] opacity-90 relative z-10"
+        className="artifact relative z-10 w-[190px] opacity-90 md:w-[300px]"
         style={{ transform: `translate(${offset.x}px, ${offset.y}px)` }}
       />
 
       <div
-        className="absolute w-[260px] md:w-[340px] h-[260px] md:h-[340px] pointer-events-none"
+        className="pointer-events-none absolute h-[230px] w-[230px] md:h-[340px] md:w-[340px]"
         style={{
           background: `radial-gradient(circle at ${50 + offset.x * 2}% ${50 + offset.y * 2}%, rgba(255,255,255,0.15), transparent 60%)`,
           filter: 'blur(40px)',
@@ -253,7 +344,7 @@ function ArtifactVisual() {
 
 function ArchiveVisual() {
   return (
-    <div className="w-full h-full overflow-hidden">
+    <div className="h-[calc(100vh-7rem)] w-full overflow-hidden md:h-full">
       <GitHubArchive />
     </div>
   );
@@ -261,10 +352,10 @@ function ArchiveVisual() {
 
 function ContactVisual() {
   return (
-    <div className="flex items-center justify-center w-full h-full font-mono text-xs opacity-40">
-      <div className="text-center space-y-4">
+    <div className="flex min-h-[360px] w-full items-center justify-center px-2 font-mono text-xs opacity-50 md:h-full md:min-h-0 md:opacity-40">
+      <div className="max-w-full space-y-4 text-center">
         <p>{VIEW_LABELS.contact}</p>
-        <div className="text-[10px] opacity-60 space-y-2">
+        <div className="space-y-2 break-words text-[10px] opacity-70">
           <p>&gt; email: opaquefilm.studio@gmail.com</p>
           <p>&gt; instagram: @opaquefilm</p>
           <p>&gt; github: github.com/reiiigns</p>
@@ -320,14 +411,14 @@ const CASE_STUDIES: CaseStudy[] = [
 
 function CaseStudiesVisual() {
   return (
-    <div className="w-full h-full overflow-y-auto scrollbar-thin flex items-start justify-center px-2 py-8">
+    <div className="scrollbar-thin flex h-[calc(100vh-7rem)] w-full items-start justify-center overflow-y-auto px-0 py-3 md:h-full md:px-2 md:py-8">
       <div className="w-full max-w-md space-y-[1px]">
         {CASE_STUDIES.map((cs) => (
           <div
             key={cs.id}
             className="border border-white/10 bg-black group"
           >
-            <div className="flex items-start justify-between p-4 gap-4">
+            <div className="flex flex-col gap-4 p-4 min-[380px]:flex-row min-[380px]:items-start min-[380px]:justify-between">
               <div className="flex-1 min-w-0">
                 <div className="font-mono text-[9px] text-white/30 tracking-widest mb-1 uppercase">
                   {cs.num} / {cs.tag}
@@ -339,7 +430,7 @@ function CaseStudiesVisual() {
                   &ldquo;{cs.signal}&rdquo;
                 </div>
               </div>
-              <div className="flex-shrink-0 flex flex-col items-end gap-2">
+              <div className="flex flex-shrink-0 flex-row items-center gap-3 min-[380px]:flex-col min-[380px]:items-end min-[380px]:gap-2">
                 <span
                   className={`font-mono text-[8px] tracking-widest px-2 py-0.5 border ${
                     cs.status === 'COMPLETE'
@@ -354,7 +445,7 @@ function CaseStudiesVisual() {
                     href={`${BASE_PATH}${cs.href}`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="font-mono text-[8px] text-white/30 hover:text-white/80 tracking-widest transition-colors duration-200 underline underline-offset-2"
+                    className="inline-flex min-h-[44px] items-center font-mono text-[8px] tracking-widest text-white/50 underline underline-offset-2 transition-colors duration-200 hover:text-white/80 min-[380px]:min-h-0"
                   >
                     VIEW →
                   </a>
@@ -364,7 +455,7 @@ function CaseStudiesVisual() {
                     href={`${BASE_PATH}${cs.playHref}`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="font-mono text-[8px] text-white/60 hover:text-white tracking-widest transition-colors duration-200 underline underline-offset-2"
+                    className="inline-flex min-h-[44px] items-center font-mono text-[8px] tracking-widest text-white/70 underline underline-offset-2 transition-colors duration-200 hover:text-white min-[380px]:min-h-0"
                   >
                     ▶ PLAY
                   </a>
