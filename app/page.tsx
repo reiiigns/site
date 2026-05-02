@@ -304,8 +304,8 @@ const CASE_STUDIES: CaseStudy[] = [
     title:  'SOFT CITY',
     tag:    'Conceptual Systems / Worldbuilding',
     signal: 'Systems that explore ideas',
-    status: 'COMING',
-    href:   null,
+    status: 'COMPLETE',
+    href:   '/case-studies/soft-city/case-study-soft-city.html',
   },
   {
     id:     'github-site',
