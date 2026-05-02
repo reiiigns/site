@@ -48,6 +48,7 @@ export default function DataShader() {
   useEffect(() => {
     const canvas = canvasRef.current!;
     const gl = canvas.getContext('webgl');
+    const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
     if (!gl) return;
 
@@ -181,21 +182,29 @@ export default function DataShader() {
     resize();
 
     let time = 0;
+    let animationFrame = 0;
 
     function render() {
-      time += 0.016;
+      if (!prefersReducedMotion) {
+        time += 0.016;
+      }
 
       gl.uniform2f(uResolution, canvas.width, canvas.height);
       gl.uniform1f(uTime, time);
 
       gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
 
-      requestAnimationFrame(render);
+      if (!prefersReducedMotion) {
+        animationFrame = requestAnimationFrame(render);
+      }
     }
 
     render();
 
-    return () => window.removeEventListener('resize', resize);
+    return () => {
+      window.removeEventListener('resize', resize);
+      cancelAnimationFrame(animationFrame);
+    };
   }, []);
 
   return <canvas ref={canvasRef} className="w-full h-full" />;
