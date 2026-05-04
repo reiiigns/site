@@ -47,8 +47,7 @@ export default function DataShader() {
 
   useEffect(() => {
     const canvas = canvasRef.current!;
-    const gl = canvas.getContext('webgl');
-    const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const gl = canvas.getContext('webgl')!;
 
     if (!gl) return;
 
@@ -185,18 +184,14 @@ export default function DataShader() {
     let animationFrame = 0;
 
     function render() {
-      if (!prefersReducedMotion) {
-        time += 0.016;
-      }
+      time += 0.016;
 
       gl.uniform2f(uResolution, canvas.width, canvas.height);
       gl.uniform1f(uTime, time);
 
       gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
 
-      if (!prefersReducedMotion) {
-        animationFrame = requestAnimationFrame(render);
-      }
+      animationFrame = requestAnimationFrame(render);
     }
 
     render();

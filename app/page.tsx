@@ -263,11 +263,11 @@ export default function Home() {
         <div className="relative min-h-screen w-full overflow-hidden md:h-full md:min-h-0">
           {/* animated grid */}
           <div className="absolute inset-0 opacity-[0.06] md:opacity-10">
-            <div className="h-full w-full bg-[linear-gradient(to_right,white_1px,transparent_1px),linear-gradient(to_bottom,white_1px,transparent_1px)] bg-[size:32px_32px] motion-safe:animate-pulse md:bg-[size:40px_40px]" />
+            <div className="system-grid h-full w-full" />
           </div>
 
           {/* moving scan line */}
-          <div className="absolute left-0 top-0 h-[2px] w-full bg-white opacity-15 motion-safe:animate-[scan_4s_linear_infinite] md:opacity-30" />
+          <div className="scanline absolute left-0 top-0 h-[2px] w-full bg-white opacity-30" />
 
           {/* center content */}
           <div className="relative mx-auto flex min-h-[calc(100vh-3.5rem)] w-full items-center justify-center px-4 py-8 md:h-[70%] md:min-h-0 md:w-[70%] md:px-0 md:py-0">
@@ -294,7 +294,7 @@ function HomeVisual() {
   return (
     <div className="relative min-h-[360px] w-full overflow-hidden md:h-full md:min-h-0">
       <div className="absolute inset-0 opacity-[0.06] md:opacity-10">
-        <div className="h-full w-full bg-[linear-gradient(to_right,white_1px,transparent_1px),linear-gradient(to_bottom,white_1px,transparent_1px)] bg-[size:32px_32px] md:bg-[size:40px_40px]" />
+        <div className="system-grid h-full w-full" />
       </div>
       <CenterLabel text={VIEW_LABELS.home} />
     </div>
@@ -323,12 +323,16 @@ function ArtifactVisual() {
         setOffset({ x, y });
       }}
     >
-      <img
-        src={`${BASE_PATH}/keycap.png`}
-        alt="artifact"
-        className="artifact relative z-10 w-[190px] opacity-90 md:w-[300px]"
+      <div
+        className="relative z-10"
         style={{ transform: `translate(${offset.x}px, ${offset.y}px)` }}
-      />
+      >
+        <img
+          src={`${BASE_PATH}/keycap.png`}
+          alt="artifact"
+          className="artifact w-[190px] opacity-90 md:w-[300px]"
+        />
+      </div>
 
       <div
         className="pointer-events-none absolute h-[230px] w-[230px] md:h-[340px] md:w-[340px]"

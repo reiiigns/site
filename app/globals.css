@@ -87,6 +87,7 @@ body {
   animation: float 6s ease-in-out infinite; /* Adjust '6s' for float speed */
   transition: transform 0.3s ease, opacity 0.3s ease;
   filter: drop-shadow(0 0 20px rgba(255, 255, 255, 0.12)); /* Adjust glow intensity */
+  will-change: transform;
 }
 .artifact:hover {
   transform: scale(1.05);  /* Adjust scale on hover */
@@ -99,6 +100,18 @@ body {
   will-change: transform;
   transform: translateZ(0);
   pointer-events: none;
+}
+
+.system-grid {
+  --grid-size: 32px;
+  background-image: linear-gradient(to right, white 1px, transparent 1px), linear-gradient(to bottom, white 1px, transparent 1px);
+  background-size: var(--grid-size) var(--grid-size);
+}
+
+@media (min-width: 768px) {
+  .system-grid {
+    --grid-size: 40px;
+  }
 }
 
 /* --- FADE IN (for list items) --- */
@@ -125,15 +138,4 @@ body {
 }
 .scrollbar-thin::-webkit-scrollbar-thumb {
   background: rgba(255, 255, 255, 0.2);
-}
-
-@media (prefers-reduced-motion: reduce) {
-  *,
-  *::before,
-  *::after {
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    scroll-behavior: auto !important;
-    transition-duration: 0.01ms !important;
-  }
 }
