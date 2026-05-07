@@ -8,19 +8,20 @@ const BASE_PATH = process.env.NEXT_PUBLIC_BASE_PATH || '';
 /* ============================================
    💡 SITE IDENTITY — EDITABLE STRINGS
    ============================================ */
-const SITE_NAME    = 'OPAQUEFILM_SYS';
+const SITE_NAME    = 'REIIIGNS_WORKS';
 const SITE_VERSION = 'v2.0';
 const SITE_LOCATION = 'TOKYO';
-const SYSTEM_ID    = 'AF-0001';
-const SYSTEM_TYPE  = 'VISUAL SYSTEM';
+const SYSTEM_ID    = 'RW-0001';
+const SYSTEM_TYPE  = 'HUMAN SOFTWARE';
+const STUDIO_TAGLINE = 'human systems and strange games';
 
 /* ============================================
    💡 BOOT SEQUENCE — EDITABLE MESSAGES
    ============================================ */
 const BOOT_MESSAGES = [
-  '> booting system...',
-  '> initializing modules...',
-  '> loading interface...',
+  '> waking studio...',
+  '> loading soft systems...',
+  '> interface ready...',
 ];
 const BOOT_DELAY_MS    = 400;  // Delay between boot messages
 const BOOT_FADE_DELAY  = 500;  // Delay before transitioning to main UI
@@ -29,8 +30,8 @@ const BOOT_FADE_DELAY  = 500;  // Delay before transitioning to main UI
    💡 NAVIGATION LABELS — EDITABLE
    ============================================ */
 const NAV_ITEMS = [
-  { id: 'projects',     label: '[/01] PROJECTS'     },
-  { id: 'experiments',  label: '[/02] EXPERIMENTS'  },
+  { id: 'projects',     label: '[/01] SOFTWARE'     },
+  { id: 'experiments',  label: '[/02] GAMES'        },
   { id: 'case-studies', label: '[/03] CASE STUDIES' },
   { id: 'archive',      label: '[/04] ARCHIVE'      },
   { id: 'contact',      label: '[/05] CONTACT'      },
@@ -40,11 +41,11 @@ const NAV_ITEMS = [
    💡 VIEW CENTER LABELS — EDITABLE
    ============================================ */
 const VIEW_LABELS: Record<string, string> = {
-  home:          'SYSTEM READY',
-  projects:      'ARTIFACT VIEW',
-  experiments:   'DATA STREAM',
+  home:          'STUDIO READY',
+  projects:      'SOFTWARE SYSTEMS',
+  experiments:   'GAMES',
   'case-studies':'CASE STUDIES',
-  archive:       'ARCHIVE DATABASE',
+  archive:       'PUBLIC WORK ARCHIVE',
   contact:       'CONTACT INTERFACE',
 };
 
@@ -52,9 +53,9 @@ const VIEW_LABELS: Record<string, string> = {
    💡 FOOTER SYSTEM INFO — EDITABLE
    ============================================ */
 const FOOTER_INFO = [
-  'SYS.TIME 13:42:08',
-  'SYS.LOAD 0.42',
-  'MEMORY STABLE',
+  'SOLO STUDIO',
+  'NEURODIVERGENT-LED',
+  'MADE FOR HUMAN LIMITS',
 ];
 
 /* ============================================
@@ -66,6 +67,41 @@ const getLoadingMessages = (view: string) => [
   '> ready',
 ];
 const LOADING_DELAY_MS = 300;
+
+const STUDIO_LINES = [
+  'REIIIGNS Works is a solo studio making software and games for nervous systems, attention, and sensory life.',
+  'The work starts from neurodivergent experience and turns into tools for people who need gentler systems.',
+];
+
+const SOFTWARE_PRODUCTS = [
+  {
+    name: 'Easy Wins',
+    detail: 'Project management for executive dysfunction.',
+  },
+  {
+    name: 'Soft City',
+    detail: 'A calm map built around sensory needs.',
+  },
+  {
+    name: 'Machines',
+    detail: 'Local and cloud AI models on your device, under your control.',
+  },
+  {
+    name: 'Guardian',
+    detail: 'A protective layer for body signals, crashes, and burnout.',
+  },
+];
+
+const GAME_PRODUCTS = [
+  {
+    name: 'KEMURI',
+    detail: 'A quiet PSX game about cigarettes, journals, and heavy thoughts.',
+  },
+  {
+    name: 'CY-BEX',
+    detail: 'Urban exploration, dungeon crawling, and extraction pressure.',
+  },
+];
 
 export default function Home() {
   const [bootLines, setBootLines] = useState<string[]>([]);
@@ -147,7 +183,7 @@ export default function Home() {
           className="min-h-[44px] min-w-[44px] text-left font-mono text-[10px] tracking-wider text-white/70 focus-visible:outline focus-visible:outline-1 focus-visible:outline-offset-2 focus-visible:outline-white"
           aria-label="Go to system home"
         >
-          &gt; {SITE_NAME}
+          <BrandLockup compact />
         </button>
         <div className="min-w-0 px-3 text-center font-mono text-[10px] tracking-widest text-white/40">
           <span className="block truncate">{activeLabel}</span>
@@ -176,7 +212,8 @@ export default function Home() {
       >
         <div>
           <div className="font-mono text-xs tracking-wider text-white/70">
-            <p>&gt; {SITE_NAME} {SITE_VERSION}</p>
+            <BrandLockup />
+            <p className="mt-5">&gt; {SITE_NAME} {SITE_VERSION}</p>
             <p className="mt-3">&gt; STATUS: ONLINE</p>
             <p className="mt-3">&gt; LOCATION: {SITE_LOCATION}</p>
           </div>
@@ -216,7 +253,8 @@ export default function Home() {
       {/* LEFT PANEL */}
       <section className="hidden h-full w-[32%] min-w-[320px] max-w-[420px] flex-col justify-between border-r border-white/10 px-8 py-10 md:flex">
         <div className="font-mono text-xs tracking-wider space-y-3 opacity-80">
-          <p>&gt; {SITE_NAME} {SITE_VERSION}</p>
+          <BrandLockup />
+          <p className="pt-3">&gt; {SITE_NAME} {SITE_VERSION}</p>
           <p>&gt; STATUS: ONLINE</p>
           <p>&gt; LOCATION: {SITE_LOCATION}</p>
 
@@ -292,11 +330,23 @@ export default function Home() {
 
 function HomeVisual() {
   return (
-    <div className="relative min-h-[360px] w-full overflow-hidden md:h-full md:min-h-0">
+    <div className="relative flex min-h-[520px] w-full items-center overflow-hidden md:h-full md:min-h-0">
       <div className="absolute inset-0 opacity-[0.06] md:opacity-10">
         <div className="system-grid h-full w-full" />
       </div>
-      <CenterLabel text={VIEW_LABELS.home} />
+      <div className="relative z-10 mx-auto w-full max-w-2xl px-2 font-mono">
+        <BrandLockup />
+        <div className="mt-8 space-y-4 text-sm leading-7 text-white/68 md:text-base md:leading-8">
+          {STUDIO_LINES.map((line) => (
+            <p key={line}>{line}</p>
+          ))}
+        </div>
+        <div className="mt-10 grid gap-3 text-[10px] tracking-widest text-white/45 min-[520px]:grid-cols-3">
+          <p>&gt; SOFTWARE</p>
+          <p>&gt; GAMES</p>
+          <p>&gt; CARE SYSTEMS</p>
+        </div>
+      </div>
     </div>
   );
 }
@@ -305,7 +355,7 @@ function DataVisual() {
   return (
     <div className="relative min-h-[380px] w-full md:h-full md:min-h-0">
       <DataShader />
-      <CenterLabel text={VIEW_LABELS.experiments} />
+      <ProductList label={VIEW_LABELS.experiments} products={GAME_PRODUCTS} />
     </div>
   );
 }
@@ -327,11 +377,7 @@ function ArtifactVisual() {
         className="relative z-10"
         style={{ transform: `translate(${offset.x}px, ${offset.y}px)` }}
       >
-        <img
-          src={`${BASE_PATH}/keycap.png`}
-          alt="artifact"
-          className="artifact w-[190px] opacity-90 md:w-[300px]"
-        />
+        <ProductList label={VIEW_LABELS.projects} products={SOFTWARE_PRODUCTS} />
       </div>
 
       <div
@@ -356,14 +402,54 @@ function ArchiveVisual() {
 
 function ContactVisual() {
   return (
-    <div className="flex min-h-[360px] w-full items-center justify-center px-2 font-mono text-xs opacity-50 md:h-full md:min-h-0 md:opacity-40">
+    <div className="flex min-h-[360px] w-full items-center justify-center px-2 font-mono text-xs opacity-60 md:h-full md:min-h-0">
       <div className="max-w-full space-y-4 text-center">
         <p>{VIEW_LABELS.contact}</p>
         <div className="space-y-2 break-words text-[10px] opacity-70">
+          <p>&gt; studio: REIIIGNS Works</p>
           <p>&gt; email: opaquefilm.studio@gmail.com</p>
-          <p>&gt; instagram: @opaquefilm</p>
+          <p>&gt; handle: @reiiigns</p>
           <p>&gt; github: github.com/reiiigns</p>
         </div>
+      </div>
+    </div>
+  );
+}
+
+function BrandLockup({ compact = false }: { compact?: boolean }) {
+  return (
+    <div className={`font-mono ${compact ? 'flex items-center gap-2' : 'space-y-2'}`}>
+      <div className="flex items-center gap-2 text-white/85" aria-label="REIIIGNS Works">
+        <span className="tracking-[0.24em]">III</span>
+        <span className="h-5 w-1 bg-[#B7FF5A]" aria-hidden="true" />
+        <span className={compact ? 'sr-only' : 'ml-2 text-[10px] tracking-[0.22em] text-white/45'}>
+          REIIIGNS Works
+        </span>
+      </div>
+      {!compact && (
+        <p className="text-[10px] tracking-[0.18em] text-white/35">&gt; {STUDIO_TAGLINE}</p>
+      )}
+    </div>
+  );
+}
+
+function ProductList({
+  label,
+  products,
+}: {
+  label: string;
+  products: { name: string; detail: string }[];
+}) {
+  return (
+    <div className="relative z-20 mx-auto w-full max-w-xl px-2 font-mono">
+      <p className="mb-6 text-[10px] tracking-widest text-white/35">&gt; {label}</p>
+      <div className="space-y-[1px]">
+        {products.map((product) => (
+          <div key={product.name} className="border border-white/10 bg-black/75 p-4">
+            <p className="text-xs tracking-wider text-white/80">{product.name}</p>
+            <p className="mt-2 text-[10px] leading-5 text-white/45">{product.detail}</p>
+          </div>
+        ))}
       </div>
     </div>
   );
