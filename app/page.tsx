@@ -489,13 +489,13 @@ const CASE_STUDIES: CaseStudy[] = [
     href:   '/case-studies/soft-city/case-study-soft-city.html',
   },
   {
-    id:     'github-site',
+    id:     'easy-wins',
     num:    '03',
-    title:  'GITHUB SITE',
-    tag:    'Real-world Constraints / Performance',
-    signal: 'Systems that ship and work',
-    status: 'COMING',
-    href:   null,
+    title:  'EASY WINS',
+    tag:    'Local AI / Developer Tools',
+    signal: 'Systems that get builders moving',
+    status: 'COMPLETE',
+    href:   '/case-studies/easy-wins/case-study-easy-wins.html',
   },
 ];
 
