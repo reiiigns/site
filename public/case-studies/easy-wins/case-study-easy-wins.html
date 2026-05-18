@@ -1,0 +1,1311 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Easy Wins — Darryl Friemann</title>
+  <style>
+    /* ── Reset & Base ─────────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:        #000000;
+      --surface:   #0d0d0d;
+      --border:    #1a1a1a;
+      --dim:       #333333;
+      --muted:     #666666;
+      --body:      #b0b0b0;
+      --bright:    #f0f0f0;
+      --white:     #ffffff;
+      --red:       #cc2200;
+      --red-dim:   #661100;
+      --red-glow:  rgba(204,34,0,0.12);
+      --blue:      #3d8bff;
+      --blue-dim:  rgba(61,139,255,0.10);
+      --yellow:    #f59e0b;
+      --yellow-dim: rgba(245,158,11,0.10);
+      --green:     #34d399;
+      --mono:      'Courier New', Courier, monospace;
+      --sans:      -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--bg);
+      color: var(--body);
+      font-family: var(--sans);
+      font-size: 16px;
+      line-height: 1.7;
+      overflow-x: hidden;
+    }
+
+    /* ── Background Canvas ───────────────────────────────────── */
+    #bg-canvas {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      z-index: 0;
+      opacity: 0.25;
+      pointer-events: none;
+    }
+
+    /* ── Nav ─────────────────────────────────────────────────── */
+    nav {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 100;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 1.25rem 2.5rem;
+      border-bottom: 1px solid var(--border);
+      background: rgba(0,0,0,0.85);
+      backdrop-filter: blur(12px);
+    }
+
+    .nav-id {
+      font-family: var(--mono);
+      font-size: 0.75rem;
+      color: var(--muted);
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+    }
+
+    .nav-id span { color: var(--red); }
+
+    .nav-links {
+      display: flex;
+      gap: 2rem;
+      list-style: none;
+    }
+
+    .nav-links a {
+      font-family: var(--mono);
+      font-size: 0.7rem;
+      color: var(--muted);
+      text-decoration: none;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      transition: color 0.2s;
+    }
+
+    .nav-links a:hover { color: var(--bright); }
+
+    /* ── Section Dots ────────────────────────────────────────── */
+    .section-dots {
+      position: fixed;
+      right: 1.75rem;
+      top: 50%;
+      transform: translateY(-50%);
+      z-index: 100;
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+
+    .dot {
+      width: 5px;
+      height: 5px;
+      border-radius: 50%;
+      background: var(--dim);
+      cursor: pointer;
+      transition: background 0.3s, transform 0.3s;
+    }
+
+    .dot.active {
+      background: var(--red);
+      transform: scale(1.6);
+    }
+
+    /* ── Sections ────────────────────────────────────────────── */
+    section {
+      position: relative;
+      z-index: 1;
+      min-height: 100vh;
+      padding: 7rem 0 5rem;
+      display: flex;
+      align-items: center;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 0 2.5rem;
+    }
+
+    /* ── Reveal ──────────────────────────────────────────────── */
+    .reveal {
+      opacity: 0;
+      transform: translateY(28px);
+      transition: opacity 0.7s ease, transform 0.7s ease;
+    }
+
+    .reveal.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .reveal-delay-1 { transition-delay: 0.1s; }
+    .reveal-delay-2 { transition-delay: 0.2s; }
+    .reveal-delay-3 { transition-delay: 0.3s; }
+    .reveal-delay-4 { transition-delay: 0.4s; }
+    .reveal-delay-5 { transition-delay: 0.5s; }
+
+    /* ── Typography ──────────────────────────────────────────── */
+    .label {
+      font-family: var(--mono);
+      font-size: 0.65rem;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--red);
+      margin-bottom: 1rem;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .label::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: var(--red-dim);
+      max-width: 80px;
+    }
+
+    h1 {
+      font-size: clamp(2.5rem, 6vw, 4.5rem);
+      font-weight: 300;
+      color: var(--white);
+      line-height: 1.1;
+      letter-spacing: -0.02em;
+    }
+
+    h1 em { font-style: normal; color: var(--red); }
+
+    h2 {
+      font-size: clamp(1.5rem, 3vw, 2rem);
+      font-weight: 300;
+      color: var(--bright);
+      line-height: 1.25;
+      letter-spacing: -0.01em;
+      margin-bottom: 1.5rem;
+    }
+
+    h3 {
+      font-size: 0.8rem;
+      font-family: var(--mono);
+      font-weight: normal;
+      color: var(--bright);
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      margin-bottom: 0.75rem;
+    }
+
+    p {
+      color: var(--body);
+      margin-bottom: 1.25rem;
+      max-width: 65ch;
+    }
+
+    p:last-child { margin-bottom: 0; }
+    strong { color: var(--bright); font-weight: 500; }
+
+    /* ── Hero ────────────────────────────────────────────────── */
+    #hero { border-bottom: 1px solid var(--border); }
+
+    .hero-meta {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1px;
+      background: var(--border);
+      margin-top: 4rem;
+      border: 1px solid var(--border);
+    }
+
+    .meta-cell {
+      background: var(--bg);
+      padding: 1.25rem 1.5rem;
+    }
+
+    .meta-cell .key {
+      font-family: var(--mono);
+      font-size: 0.6rem;
+      color: var(--muted);
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      margin-bottom: 0.4rem;
+    }
+
+    .meta-cell .val {
+      font-size: 0.85rem;
+      color: var(--bright);
+    }
+
+    .hero-signal {
+      margin-top: 3rem;
+      padding: 1.5rem;
+      border-left: 2px solid var(--red);
+      background: var(--red-glow);
+    }
+
+    .hero-signal p {
+      font-family: var(--mono);
+      font-size: 0.85rem;
+      color: var(--bright);
+      margin: 0;
+      max-width: 100%;
+    }
+
+    /* ── Divider ─────────────────────────────────────────────── */
+    .divider {
+      border: none;
+      border-top: 1px solid var(--border);
+      margin: 3rem 0;
+    }
+
+    /* ── Two-col ─────────────────────────────────────────────── */
+    .two-col {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 3rem;
+    }
+
+    @media (max-width: 700px) {
+      .two-col { grid-template-columns: 1fr; }
+    }
+
+    /* ── Card Grid ───────────────────────────────────────────── */
+    .card-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 1px;
+      background: var(--border);
+      border: 1px solid var(--border);
+      margin-top: 2.5rem;
+    }
+
+    .card {
+      background: var(--surface);
+      padding: 1.75rem;
+      position: relative;
+    }
+
+    .card h3 { margin-bottom: 0.75rem; }
+
+    .card p {
+      font-size: 0.875rem;
+      margin: 0;
+      max-width: 100%;
+    }
+
+    .card[data-num]::before {
+      content: attr(data-num);
+      position: absolute;
+      top: 1.25rem;
+      right: 1.5rem;
+      font-family: var(--mono);
+      font-size: 0.6rem;
+      color: var(--dim);
+    }
+
+    @media (max-width: 600px) {
+      .card-grid { grid-template-columns: 1fr; }
+    }
+
+    /* ── Layer Stack ─────────────────────────────────────────── */
+    .layer-stack { margin: 2.5rem 0 0; }
+
+    .layer-row {
+      display: grid;
+      grid-template-columns: 3rem 1fr auto;
+      border: 1px solid var(--border);
+      margin-bottom: -1px;
+      background: var(--surface);
+    }
+
+    .layer-num {
+      font-family: var(--mono);
+      font-size: 0.6rem;
+      color: var(--red);
+      padding: 1.5rem 0 1.5rem 1.25rem;
+      letter-spacing: 0.12em;
+      display: flex;
+      align-items: center;
+    }
+
+    .layer-body {
+      padding: 1.25rem 1.5rem;
+      border-left: 1px solid var(--border);
+    }
+
+    .layer-body h3 { margin-bottom: 0.35rem; }
+
+    .layer-body p {
+      font-size: 0.85rem;
+      color: var(--muted);
+      margin: 0;
+      max-width: 100%;
+    }
+
+    .layer-tag {
+      padding: 1.25rem 1.5rem;
+      display: flex;
+      align-items: center;
+      border-left: 1px solid var(--border);
+    }
+
+    .tag {
+      font-family: var(--mono);
+      font-size: 0.6rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      padding: 0.3rem 0.7rem;
+      border: 1px solid;
+    }
+
+    .tag-blue { color: var(--blue); border-color: rgba(61,139,255,0.3); background: var(--blue-dim); }
+    .tag-yellow { color: var(--yellow); border-color: rgba(245,158,11,0.3); background: var(--yellow-dim); }
+    .tag-green { color: var(--green); border-color: rgba(52,211,153,0.25); background: rgba(52,211,153,0.07); }
+    .tag-red { color: var(--red); border-color: var(--red-dim); background: var(--red-glow); }
+
+    /* ── Decision Block ──────────────────────────────────────── */
+    .decision-block {
+      border: 1px solid var(--border);
+      background: var(--surface);
+      margin-bottom: -1px;
+    }
+
+    .decision-header {
+      display: grid;
+      grid-template-columns: auto 1fr;
+      gap: 0;
+    }
+
+    .decision-num {
+      font-family: var(--mono);
+      font-size: 0.6rem;
+      color: var(--red);
+      letter-spacing: 0.12em;
+      padding: 1.5rem 1.25rem;
+      border-right: 1px solid var(--border);
+      display: flex;
+      align-items: flex-start;
+      min-width: 4rem;
+    }
+
+    .decision-content { padding: 1.5rem; }
+
+    .decision-content h3 {
+      color: var(--bright);
+      margin-bottom: 0.5rem;
+    }
+
+    .decision-content p {
+      font-size: 0.875rem;
+      max-width: 100%;
+      margin-bottom: 0.75rem;
+    }
+
+    .decision-content p:last-child { margin-bottom: 0; }
+
+    .decision-tradeoff {
+      margin-top: 0.75rem;
+      padding: 0.75rem 1rem;
+      border-left: 2px solid var(--dim);
+      background: rgba(255,255,255,0.02);
+    }
+
+    .decision-tradeoff span {
+      font-family: var(--mono);
+      font-size: 0.6rem;
+      color: var(--muted);
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      display: block;
+      margin-bottom: 0.35rem;
+    }
+
+    .decision-tradeoff p {
+      font-size: 0.8rem;
+      color: var(--muted);
+      margin: 0;
+    }
+
+    /* ── Score Bar ───────────────────────────────────────────── */
+    .score-bars { margin-top: 2.5rem; }
+
+    .score-row {
+      display: grid;
+      grid-template-columns: 1fr 3fr auto;
+      align-items: center;
+      gap: 1.25rem;
+      padding: 0.85rem 0;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .score-row:last-child { border-bottom: none; }
+
+    .score-label {
+      font-family: var(--mono);
+      font-size: 0.65rem;
+      color: var(--muted);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .score-track {
+      height: 3px;
+      background: var(--border);
+      position: relative;
+    }
+
+    .score-fill {
+      position: absolute;
+      top: 0; left: 0;
+      height: 100%;
+      background: var(--red);
+      transition: width 1s ease;
+    }
+
+    .score-val {
+      font-family: var(--mono);
+      font-size: 0.65rem;
+      color: var(--bright);
+      text-align: right;
+      min-width: 2.5rem;
+    }
+
+    /* ── Win Card ────────────────────────────────────────────── */
+    .win-card {
+      border: 1px solid rgba(245,158,11,0.3);
+      border-left: 3px solid var(--yellow);
+      background: var(--yellow-dim);
+      padding: 1.75rem;
+      margin-top: 2.5rem;
+    }
+
+    .win-card-label {
+      font-family: var(--mono);
+      font-size: 0.6rem;
+      color: var(--yellow);
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      margin-bottom: 0.75rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .win-card-label::before {
+      content: '⚡';
+      font-size: 0.7rem;
+    }
+
+    .win-card h3 {
+      font-size: 1.1rem;
+      font-family: var(--sans);
+      color: var(--white);
+      font-weight: 500;
+      letter-spacing: normal;
+      text-transform: none;
+      margin-bottom: 0.5rem;
+    }
+
+    .win-card p {
+      font-size: 0.875rem;
+      color: var(--body);
+      margin-bottom: 0.75rem;
+    }
+
+    .win-badges {
+      display: flex;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+    }
+
+    .win-badge {
+      font-family: var(--mono);
+      font-size: 0.6rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      padding: 0.25rem 0.6rem;
+      border: 1px solid var(--dim);
+      color: var(--muted);
+      background: rgba(255,255,255,0.03);
+    }
+
+    /* ── Tier Ladder ─────────────────────────────────────────── */
+    .tier-ladder {
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+      margin-top: 2.5rem;
+    }
+
+    .tier-row {
+      display: grid;
+      grid-template-columns: 3rem 1fr auto;
+      border: 1px solid var(--border);
+      margin-bottom: -1px;
+      background: var(--surface);
+      transition: background 0.2s;
+    }
+
+    .tier-row:hover { background: rgba(255,255,255,0.02); }
+
+    .tier-level {
+      font-family: var(--mono);
+      font-size: 0.6rem;
+      color: var(--dim);
+      padding: 1.25rem 0 1.25rem 1.25rem;
+      display: flex;
+      align-items: center;
+    }
+
+    .tier-body {
+      padding: 1rem 1.5rem;
+      border-left: 1px solid var(--border);
+    }
+
+    .tier-body h3 {
+      font-size: 0.75rem;
+      margin-bottom: 0.2rem;
+      color: var(--bright);
+    }
+
+    .tier-body p {
+      font-size: 0.75rem;
+      color: var(--muted);
+      margin: 0;
+      max-width: 100%;
+    }
+
+    .tier-pts {
+      padding: 1rem 1.5rem;
+      border-left: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+    }
+
+    .tier-pts span {
+      font-family: var(--mono);
+      font-size: 0.65rem;
+      color: var(--dim);
+    }
+
+    /* ── Outcome Row ─────────────────────────────────────────── */
+    .outcome-row {
+      display: grid;
+      grid-template-columns: 2px 1fr;
+      gap: 1.5rem;
+      padding: 1.75rem 0;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .outcome-row:last-child { border-bottom: none; }
+
+    .outcome-bar { background: var(--red); }
+
+    .outcome-text h3 {
+      font-size: 0.75rem;
+      color: var(--bright);
+      margin-bottom: 0.4rem;
+    }
+
+    .outcome-text p {
+      font-size: 0.875rem;
+      color: var(--body);
+      margin: 0;
+    }
+
+    /* ── Stack Table ─────────────────────────────────────────── */
+    .stack-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 2.5rem;
+      font-size: 0.85rem;
+    }
+
+    .stack-table thead tr {
+      border-bottom: 1px solid var(--border);
+    }
+
+    .stack-table th {
+      font-family: var(--mono);
+      font-size: 0.6rem;
+      color: var(--muted);
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      padding: 0.75rem 1rem;
+      text-align: left;
+      font-weight: normal;
+    }
+
+    .stack-table td {
+      padding: 0.9rem 1rem;
+      border-bottom: 1px solid var(--border);
+      vertical-align: top;
+    }
+
+    .stack-table tr:last-child td { border-bottom: none; }
+
+    .stack-table .td-layer {
+      font-family: var(--mono);
+      font-size: 0.7rem;
+      color: var(--red);
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      white-space: nowrap;
+    }
+
+    .stack-table .td-tech { color: var(--bright); }
+
+    .stack-table .td-why { color: var(--muted); font-size: 0.8rem; }
+
+    /* ── Footer ──────────────────────────────────────────────── */
+    footer {
+      position: relative;
+      z-index: 1;
+      border-top: 1px solid var(--border);
+      padding: 3rem 2.5rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .footer-id {
+      font-family: var(--mono);
+      font-size: 0.65rem;
+      color: var(--dim);
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+    }
+
+    .footer-id span { color: var(--red); }
+
+    .footer-nav {
+      display: flex;
+      gap: 2rem;
+    }
+
+    .footer-nav a {
+      font-family: var(--mono);
+      font-size: 0.65rem;
+      color: var(--muted);
+      text-decoration: none;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      transition: color 0.2s;
+    }
+
+    .footer-nav a:hover { color: var(--bright); }
+
+    @media (max-width: 600px) {
+      nav { padding: 1rem 1.25rem; }
+      .nav-links { display: none; }
+      .section-dots { display: none; }
+      .container { padding: 0 1.25rem; }
+      footer { flex-direction: column; gap: 1.5rem; }
+      .hero-meta { grid-template-columns: 1fr; }
+      .layer-row { grid-template-columns: 2.5rem 1fr; }
+      .layer-tag { display: none; }
+      .score-row { grid-template-columns: 1fr; gap: 0.5rem; }
+      .tier-row { grid-template-columns: 2.5rem 1fr; }
+      .tier-pts { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- Background Canvas -->
+<canvas id="bg-canvas"></canvas>
+
+<!-- Nav -->
+<nav>
+  <div class="nav-id">DARRYL<span>.</span>FRIEMANN</div>
+  <ul class="nav-links">
+    <li><a href="#hero">Overview</a></li>
+    <li><a href="#problem">Problem</a></li>
+    <li><a href="#system">System</a></li>
+    <li><a href="#decisions">Decisions</a></li>
+    <li><a href="#stack">Stack</a></li>
+    <li><a href="../../index.html">← Index</a></li>
+  </ul>
+</nav>
+
+<!-- Section Dots -->
+<div class="section-dots" id="section-dots">
+  <div class="dot" data-section="hero"></div>
+  <div class="dot" data-section="problem"></div>
+  <div class="dot" data-section="system"></div>
+  <div class="dot" data-section="decisions"></div>
+  <div class="dot" data-section="stack"></div>
+</div>
+
+<!-- ────────────────────────────────────────────────────────── -->
+<!-- 01 — HERO                                                  -->
+<!-- ────────────────────────────────────────────────────────── -->
+<section id="hero">
+  <div class="container">
+    <div class="label reveal">01 — Easy Wins</div>
+    <h1 class="reveal reveal-delay-1">Easy <em>Wins</em><br>Project Tracker</h1>
+    <p class="reveal reveal-delay-2" style="margin-top:1.5rem; font-size:1.1rem; color:var(--body); max-width:55ch;">
+      A local-first desktop tool that scans a codebase and answers one question:
+      <strong>what's the single best thing to work on right now?</strong>
+    </p>
+
+    <div class="hero-meta reveal reveal-delay-3">
+      <div class="meta-cell">
+        <div class="key">Type</div>
+        <div class="val">Desktop app (Electron)</div>
+      </div>
+      <div class="meta-cell">
+        <div class="key">Stack</div>
+        <div class="val">React · TypeScript · llama.cpp</div>
+      </div>
+      <div class="meta-cell">
+        <div class="key">Model</div>
+        <div class="val">Gemma 3 1B (local inference)</div>
+      </div>
+    </div>
+
+    <div class="hero-signal reveal reveal-delay-4">
+      <p>→ I build tools that cut through paralysis and get builders moving.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ────────────────────────────────────────────────────────── -->
+<!-- 02 — PROBLEM                                               -->
+<!-- ────────────────────────────────────────────────────────── -->
+<section id="problem">
+  <div class="container">
+    <div class="label reveal">02 — The Problem</div>
+    <h2 class="reveal reveal-delay-1">Solo builders stall — not from lack of ideas,<br>but from too many open loops.</h2>
+
+    <div class="two-col reveal reveal-delay-2">
+      <div>
+        <p>Every project has a backlog that expands faster than it empties. Feature ideas, bugs, README gaps, missing error handling, half-finished tests — all of it competing for the same limited attention session.</p>
+        <p>The problem isn't motivation. It's prioritization under cognitive load. When everything feels important, nothing gets done.</p>
+      </div>
+      <div>
+        <p>Existing tools — Jira, Linear, GitHub Issues — are designed for teams. They surface all your tasks, organized by status and sprint. That's the wrong interface for a solo builder at 11pm who just wants to know: <strong>what do I open first?</strong></p>
+        <p>Easy Wins inverts the model. It reads your project and tells you the one move with the highest impact-to-effort ratio. Everything else is secondary.</p>
+      </div>
+    </div>
+
+    <hr class="divider">
+
+    <h3 class="reveal" style="margin-bottom:1.5rem;">The real constraint</h3>
+    <div class="card-grid reveal reveal-delay-1">
+      <div class="card" data-num="01">
+        <h3>Attention is the bottleneck</h3>
+        <p>Solo builders context-switch constantly. A tool that requires upfront configuration or multi-step planning fails the person who has 45 minutes and needs a clear entry point immediately.</p>
+      </div>
+      <div class="card" data-num="02">
+        <h3>Project state is never obvious</h3>
+        <p>After days away from a codebase, the current state — what works, what's broken, what's missing — isn't in anyone's head. It lives in the code. The tool should read the code, not rely on memory.</p>
+      </div>
+      <div class="card" data-num="03">
+        <h3>Progress feels invisible</h3>
+        <p>Fixing bugs and adding docs doesn't feel like forward motion. Without a way to track improvement over time, small wins go unnoticed and motivation erodes even when work is happening.</p>
+      </div>
+      <div class="card" data-num="04">
+        <h3>Generic advice doesn't help</h3>
+        <p>Checklists like "add a README" or "write unit tests" are useless without project context. The tool needs to reason about <em>this</em> project's actual state — not a template.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ────────────────────────────────────────────────────────── -->
+<!-- 03 — SYSTEM                                                -->
+<!-- ────────────────────────────────────────────────────────── -->
+<section id="system">
+  <div class="container">
+    <div class="label reveal">03 — The System</div>
+    <h2 class="reveal reveal-delay-1">Analysis → Report → One Win</h2>
+
+    <p class="reveal reveal-delay-2" style="max-width:55ch;">
+      The tool scans a project folder, classifies it against a configurable analysis profile, then produces a structured report — surfacing the highest-value task as a hero card at the top.
+    </p>
+
+    <!-- The Win Card (UI mockup) -->
+    <div class="win-card reveal reveal-delay-3">
+      <div class="win-card-label">Today's Win</div>
+      <h3>Add a package.json description and keywords field</h3>
+      <p>Missing metadata reduces discoverability and makes the project harder to understand at a glance. This takes under 5 minutes and directly improves documentation score.</p>
+      <div class="win-badges">
+        <span class="win-badge">Easy</span>
+        <span class="win-badge">15 min</span>
+        <span class="win-badge">package.json</span>
+      </div>
+    </div>
+
+    <hr class="divider">
+
+    <h3 class="reveal" style="margin-bottom:0.5rem;">Report anatomy</h3>
+    <p class="reveal reveal-delay-1" style="font-size:0.875rem; max-width:55ch;">Each analysis run produces a structured report across seven completion dimensions, then uses those scores to generate ranked actions.</p>
+
+    <div class="score-bars reveal reveal-delay-2">
+      <div class="score-row">
+        <span class="score-label">Core Functionality</span>
+        <div class="score-track"><div class="score-fill" style="width:82%;"></div></div>
+        <span class="score-val">82%</span>
+      </div>
+      <div class="score-row">
+        <span class="score-label">UI / UX Polish</span>
+        <div class="score-track"><div class="score-fill" style="width:65%;"></div></div>
+        <span class="score-val">65%</span>
+      </div>
+      <div class="score-row">
+        <span class="score-label">Code Quality</span>
+        <div class="score-track"><div class="score-fill" style="width:70%;"></div></div>
+        <span class="score-val">70%</span>
+      </div>
+      <div class="score-row">
+        <span class="score-label">Stability & Bugs</span>
+        <div class="score-track"><div class="score-fill" style="width:58%;"></div></div>
+        <span class="score-val">58%</span>
+      </div>
+      <div class="score-row">
+        <span class="score-label">Performance</span>
+        <div class="score-track"><div class="score-fill" style="width:74%;"></div></div>
+        <span class="score-val">74%</span>
+      </div>
+      <div class="score-row">
+        <span class="score-label">Documentation</span>
+        <div class="score-track"><div class="score-fill" style="width:38%;"></div></div>
+        <span class="score-val">38%</span>
+      </div>
+      <div class="score-row">
+        <span class="score-label">Deployment Readiness</span>
+        <div class="score-track"><div class="score-fill" style="width:52%;"></div></div>
+        <span class="score-val">52%</span>
+      </div>
+    </div>
+
+    <hr class="divider">
+
+    <h3 class="reveal" style="margin-bottom:0.5rem;">Analysis profile</h3>
+    <p class="reveal reveal-delay-1" style="font-size:0.875rem; max-width:55ch; margin-bottom:2rem;">The report isn't generic. The user selects their context before analysis — platform, readiness focus, accessibility standards, publishing targets — and the model tailors its output accordingly.</p>
+
+    <div class="layer-stack reveal reveal-delay-2">
+      <div class="layer-row">
+        <div class="layer-num">P1</div>
+        <div class="layer-body">
+          <h3>Readiness Focus</h3>
+          <p>Solo/Indie · Launch · Accessibility · Publishing · Security · Enterprise Readiness</p>
+        </div>
+        <div class="layer-tag"><span class="tag tag-blue">Intent</span></div>
+      </div>
+      <div class="layer-row">
+        <div class="layer-num">P2</div>
+        <div class="layer-body">
+          <h3>Platform</h3>
+          <p>Web · Mobile · Desktop · Server/API · CLI/Tool · Game</p>
+        </div>
+        <div class="layer-tag"><span class="tag tag-blue">Context</span></div>
+      </div>
+      <div class="layer-row">
+        <div class="layer-num">P3</div>
+        <div class="layer-body">
+          <h3>Accessibility Standards</h3>
+          <p>WCAG 2.2 AA / AAA · Section 508 · Apple HIG · Android · Steam Deck</p>
+        </div>
+        <div class="layer-tag"><span class="tag tag-yellow">Compliance</span></div>
+      </div>
+      <div class="layer-row">
+        <div class="layer-num">P4</div>
+        <div class="layer-body">
+          <h3>Publishing Targets</h3>
+          <p>Web/PWA · Steam · App Store · Google Play · Microsoft Store · GitHub release</p>
+        </div>
+        <div class="layer-tag"><span class="tag tag-yellow">Release</span></div>
+      </div>
+    </div>
+
+    <hr class="divider">
+
+    <h3 class="reveal" style="margin-bottom:0.5rem;">Gamification loop</h3>
+    <p class="reveal reveal-delay-1" style="font-size:0.875rem; max-width:55ch;">Progress is tracked as points and levels. Each reanalysis awards points for score improvements, cleared issues, and completed milestones — converting invisible work into visible momentum.</p>
+
+    <div class="tier-ladder reveal reveal-delay-2">
+      <div class="tier-row">
+        <div class="tier-level">L1</div>
+        <div class="tier-body">
+          <h3>Started</h3>
+          <p>Project saved and first analysis run</p>
+        </div>
+        <div class="tier-pts"><span>0 pts</span></div>
+      </div>
+      <div class="tier-row">
+        <div class="tier-level">L2</div>
+        <div class="tier-body">
+          <h3>Cleaner</h3>
+          <p>Meaningful improvements applied</p>
+        </div>
+        <div class="tier-pts"><span>100 pts</span></div>
+      </div>
+      <div class="tier-row">
+        <div class="tier-level">L3</div>
+        <div class="tier-body">
+          <h3>Builder</h3>
+          <p>Sustained momentum, issues cleared</p>
+        </div>
+        <div class="tier-pts"><span>250 pts</span></div>
+      </div>
+      <div class="tier-row">
+        <div class="tier-level">L4</div>
+        <div class="tier-body">
+          <h3>Stabilizer</h3>
+          <p>Score above 50%, tracker progressing</p>
+        </div>
+        <div class="tier-pts"><span>500 pts</span></div>
+      </div>
+      <div class="tier-row">
+        <div class="tier-level">L5</div>
+        <div class="tier-body">
+          <h3>Release Ready</h3>
+          <p>Project near launch condition</p>
+        </div>
+        <div class="tier-pts"><span>900 pts</span></div>
+      </div>
+      <div class="tier-row">
+        <div class="tier-level">L6</div>
+        <div class="tier-body">
+          <h3>Gold Standard</h3>
+          <p>Top tier — clean, documented, shipped</p>
+        </div>
+        <div class="tier-pts"><span>1400 pts</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ────────────────────────────────────────────────────────── -->
+<!-- 04 — DECISIONS                                             -->
+<!-- ────────────────────────────────────────────────────────── -->
+<section id="decisions">
+  <div class="container">
+    <div class="label reveal">04 — Design Decisions</div>
+    <h2 class="reveal reveal-delay-1">Five calls that shaped<br>how the tool behaves.</h2>
+
+    <div class="reveal reveal-delay-2" style="margin-top:2.5rem;">
+
+      <div class="decision-block">
+        <div class="decision-header">
+          <div class="decision-num">01</div>
+          <div class="decision-content">
+            <h3>Today's Win as the primary surface</h3>
+            <p>The report leads with a single hero card: one task, an estimated time, and the exact file to open. Everything else — scores, tracker table, build order — is secondary content behind a "Show full report" toggle.</p>
+            <p>The decision reflects the core use case: someone sitting down with limited time who needs an entry point, not a dashboard. Full report access is preserved for deeper sessions.</p>
+            <div class="decision-tradeoff">
+              <span>Tradeoff</span>
+              <p>Power users who want the full report immediately have to click once. Accepted — the default serves the more common case.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="decision-block">
+        <div class="decision-header">
+          <div class="decision-num">02</div>
+          <div class="decision-content">
+            <h3>Local inference over cloud API</h3>
+            <p>The analysis runs against a locally-bundled Gemma 3 1B model via llama.cpp. No API key, no network request, no latency spike when offline. The entire tool works air-gapped.</p>
+            <p>This was also a deliberate privacy constraint: a developer's codebase shouldn't touch a third-party server unless they choose that. Local-first removes that concern entirely.</p>
+            <div class="decision-tradeoff">
+              <span>Tradeoff</span>
+              <p>A 1B parameter model produces shallower analysis than a frontier model. The structured output schema compensates — the model fills known slots rather than reasoning freely.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="decision-block">
+        <div class="decision-header">
+          <div class="decision-num">03</div>
+          <div class="decision-content">
+            <h3>Profile detection before analysis</h3>
+            <p>When a folder is selected, the tool runs a lightweight profile detection pass before the full analysis. It reads the project structure and infers likely platform, publishing targets, and readiness focus — pre-filling the analysis profile chips.</p>
+            <p>This reduces the "configure before you start" friction that kills adoption in productivity tools. Most users can just hit Analyze without touching the profile at all.</p>
+            <div class="decision-tradeoff">
+              <span>Tradeoff</span>
+              <p>Autodetection adds a second API call and a brief delay. A spinner labeled "Detecting" manages the wait without feeling broken.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="decision-block">
+        <div class="decision-header">
+          <div class="decision-num">04</div>
+          <div class="decision-content">
+            <h3>Saved analyses with delta awards</h3>
+            <p>Analyses are persisted to localStorage, keyed by folder path. On reanalysis, the tool diffs the new report against the previous one and awards points only for actual progress — score gains, issues cleared, stages advanced.</p>
+            <p>This prevents gaming the system (running the same analysis repeatedly for easy points) and keeps the reward loop honest. Points reflect real work, not activity.</p>
+            <div class="decision-tradeoff">
+              <span>Tradeoff</span>
+              <p>If the model produces different scores on identical code (due to inference temperature), a reanalysis might not award points even after real work. Acceptable noise in an otherwise subjective scoring system.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="decision-block">
+        <div class="decision-header">
+          <div class="decision-num">05</div>
+          <div class="decision-content">
+            <h3>Confidence transparency</h3>
+            <p>Every report includes a confidence rating (Low / Medium / High) shown next to the project stage badge. When the model is analyzing a sparse or ambiguous project, it says so rather than projecting false certainty.</p>
+            <p>The principle: a tool that admits uncertainty is more trustworthy than one that doesn't. Users adjust how much weight they put on the results accordingly.</p>
+            <div class="decision-tradeoff">
+              <span>Tradeoff</span>
+              <p>Displaying confidence means users may dismiss valid findings on sparse projects. Accepted — honest calibration is more useful than inflated confidence long-term.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ────────────────────────────────────────────────────────── -->
+<!-- 05 — STACK                                                 -->
+<!-- ────────────────────────────────────────────────────────── -->
+<section id="stack">
+  <div class="container">
+    <div class="label reveal">05 — Stack &amp; Outcomes</div>
+    <h2 class="reveal reveal-delay-1">Local-first architecture,<br>structured output, zero dependencies.</h2>
+
+    <table class="stack-table reveal reveal-delay-2">
+      <thead>
+        <tr>
+          <th>Layer</th>
+          <th>Technology</th>
+          <th>Why</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="td-layer">Shell</td>
+          <td class="td-tech">Electron</td>
+          <td class="td-why">Native folder picker, system tray integration, local API token management — things not possible in a pure web app</td>
+        </tr>
+        <tr>
+          <td class="td-layer">UI</td>
+          <td class="td-tech">React + TypeScript + Vite</td>
+          <td class="td-why">Fast iteration with full type safety across the report schema; component-level isolation for each report section</td>
+        </tr>
+        <tr>
+          <td class="td-layer">Styles</td>
+          <td class="td-tech">Tailwind CSS v3 + shadcn/ui</td>
+          <td class="td-why">40+ pre-built accessible components; consistent dark theme with CSS variable tokens; no custom CSS beyond overrides</td>
+        </tr>
+        <tr>
+          <td class="td-layer">Charts</td>
+          <td class="td-tech">Recharts (lazy-loaded)</td>
+          <td class="td-why">Radar chart for score overview; lazy import prevents blocking the initial render on first load</td>
+        </tr>
+        <tr>
+          <td class="td-layer">API</td>
+          <td class="td-tech">Express + axios</td>
+          <td class="td-why">Local server on port 3001; token-authenticated to prevent other processes from triggering scans; supports both Electron and browser dev mode</td>
+        </tr>
+        <tr>
+          <td class="td-layer">Inference</td>
+          <td class="td-tech">Gemma 3 1B via llama.cpp</td>
+          <td class="td-why">Runs entirely on CPU; no GPU required; bundled with the app so nothing to install; structured JSON output via constrained decoding</td>
+        </tr>
+        <tr>
+          <td class="td-layer">Persistence</td>
+          <td class="td-tech">localStorage</td>
+          <td class="td-why">Zero-config state persistence for saved analyses and achievement history; survives app restarts without a database</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <hr class="divider">
+
+    <h3 class="reveal" style="margin-bottom:1.5rem;">What it produces</h3>
+
+    <div class="reveal reveal-delay-1">
+      <div class="outcome-row">
+        <div class="outcome-bar"></div>
+        <div class="outcome-text">
+          <h3>A single prioritized task</h3>
+          <p>The "Today's Win" hero card extracts the highest-impact, easiest task from the full report and surfaces it immediately — no scrolling, no triage required.</p>
+        </div>
+      </div>
+      <div class="outcome-row">
+        <div class="outcome-bar"></div>
+        <div class="outcome-text">
+          <h3>A scored snapshot of project health</h3>
+          <p>Seven completion dimensions scored from 0–100, with a radar chart and a tracker table showing status, priority, and the next concrete action per area.</p>
+        </div>
+      </div>
+      <div class="outcome-row">
+        <div class="outcome-bar"></div>
+        <div class="outcome-text">
+          <h3>Platform-specific readiness checklists</h3>
+          <p>If the project targets Steam, the App Store, or WCAG AA, the report includes per-item status and specific remediation steps — not generic advice.</p>
+        </div>
+      </div>
+      <div class="outcome-row">
+        <div class="outcome-bar"></div>
+        <div class="outcome-text">
+          <h3>Progress tracking with gamification</h3>
+          <p>Each reanalysis diffs against the previous run and awards points for real improvement. Tiered levels (Started → Gold Standard) convert invisible maintenance work into a legible arc.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="hero-signal reveal reveal-delay-2" style="margin-top:4rem;">
+      <p>→ I build tools that cut through paralysis and get builders moving.</p>
+    </div>
+  </div>
+</section>
+
+<!-- Footer -->
+<footer>
+  <div class="footer-id">DARRYL<span>.</span>FRIEMANN — EASY WINS</div>
+  <nav class="footer-nav">
+    <a href="../browser-game/case-study-browser-game.html">← Browser Game</a>
+    <a href="../soft-city/case-study-soft-city.html">Soft City →</a>
+    <a href="../../index.html">Index</a>
+  </nav>
+</footer>
+
+<script>
+  // ── Background canvas: floating grid nodes ─────────────────
+  (function () {
+    const canvas = document.getElementById('bg-canvas');
+    const ctx = canvas.getContext('2d');
+    let W, H, nodes;
+
+    function resize() {
+      W = canvas.width = window.innerWidth;
+      H = canvas.height = window.innerHeight;
+    }
+
+    function makeNodes(n) {
+      return Array.from({ length: n }, () => ({
+        x: Math.random() * W,
+        y: Math.random() * H,
+        vx: (Math.random() - 0.5) * 0.3,
+        vy: (Math.random() - 0.5) * 0.3,
+        r: Math.random() * 1.5 + 0.5,
+      }));
+    }
+
+    function draw() {
+      ctx.clearRect(0, 0, W, H);
+      // Draw edges
+      for (let i = 0; i < nodes.length; i++) {
+        for (let j = i + 1; j < nodes.length; j++) {
+          const dx = nodes[i].x - nodes[j].x;
+          const dy = nodes[i].y - nodes[j].y;
+          const dist = Math.sqrt(dx * dx + dy * dy);
+          if (dist < 120) {
+            ctx.beginPath();
+            ctx.strokeStyle = `rgba(204,34,0,${0.15 * (1 - dist / 120)})`;
+            ctx.lineWidth = 0.5;
+            ctx.moveTo(nodes[i].x, nodes[i].y);
+            ctx.lineTo(nodes[j].x, nodes[j].y);
+            ctx.stroke();
+          }
+        }
+      }
+      // Draw nodes
+      nodes.forEach(n => {
+        ctx.beginPath();
+        ctx.arc(n.x, n.y, n.r, 0, Math.PI * 2);
+        ctx.fillStyle = 'rgba(204,34,0,0.5)';
+        ctx.fill();
+        // Update position
+        n.x += n.vx;
+        n.y += n.vy;
+        if (n.x < 0 || n.x > W) n.vx *= -1;
+        if (n.y < 0 || n.y > H) n.vy *= -1;
+      });
+    }
+
+    function loop() {
+      draw();
+      requestAnimationFrame(loop);
+    }
+
+    resize();
+    nodes = makeNodes(60);
+    window.addEventListener('resize', () => { resize(); nodes = makeNodes(60); });
+    loop();
+  })();
+
+  // ── Scroll reveal ──────────────────────────────────────────
+  (function () {
+    const els = document.querySelectorAll('.reveal');
+    const io = new IntersectionObserver((entries) => {
+      entries.forEach(e => {
+        if (e.isIntersecting) {
+          e.target.classList.add('visible');
+          io.unobserve(e.target);
+        }
+      });
+    }, { threshold: 0.12 });
+    els.forEach(el => io.observe(el));
+  })();
+
+  // ── Section dot nav ────────────────────────────────────────
+  (function () {
+    const sections = ['hero', 'problem', 'system', 'decisions', 'stack'];
+    const dots = document.querySelectorAll('.dot');
+
+    const io = new IntersectionObserver((entries) => {
+      entries.forEach(e => {
+        if (e.isIntersecting) {
+          dots.forEach(d => d.classList.remove('active'));
+          const idx = sections.indexOf(e.target.id);
+          if (idx > -1 && dots[idx]) dots[idx].classList.add('active');
+        }
+      });
+    }, { threshold: 0.4 });
+
+    sections.forEach(id => {
+      const el = document.getElementById(id);
+      if (el) io.observe(el);
+    });
+
+    dots.forEach((dot, i) => {
+      dot.addEventListener('click', () => {
+        const el = document.getElementById(sections[i]);
+        if (el) el.scrollIntoView({ behavior: 'smooth' });
+      });
+    });
+  })();
+
+  // ── Score bar animation ────────────────────────────────────
+  (function () {
+    const fills = document.querySelectorAll('.score-fill');
+    const targets = Array.from(fills).map(f => f.style.width);
+    fills.forEach(f => f.style.width = '0%');
+
+    const io = new IntersectionObserver((entries) => {
+      entries.forEach(e => {
+        if (e.isIntersecting) {
+          fills.forEach((f, i) => { f.style.width = targets[i]; });
+          io.disconnect();
+        }
+      });
+    }, { threshold: 0.3 });
+
+    const scoreSection = document.querySelector('.score-bars');
+    if (scoreSection) io.observe(scoreSection);
+  })();
+</script>
+
+</body>
+</html>
